@@ -1,7 +1,7 @@
 {
   "name": "ttn-client",
   "description": "A p2p client for the Thing Tracker Network.",
-  "version": "0.1",
+  "version": "0.0.1",
   "maintainers":[{
     "name": "Gary Hodgson",
     "email": "contact@garyhodgson.com",
@@ -22,7 +22,7 @@
     "position": "center"
   },
   "dependencies": {
-    "kadoh": "https://github.com/garyhodgson/kadoh/tree/ttn",
+    "colors": "0.6.2",
     "keypair" : "1.0.0",
     "nstore" : "0.5.2",
     "optimist" : "0.6.0",
