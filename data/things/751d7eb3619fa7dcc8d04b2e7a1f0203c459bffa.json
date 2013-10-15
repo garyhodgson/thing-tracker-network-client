@@ -1,0 +1,136 @@
+{
+   "id":"751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa",
+   "title":"Mechanical Movement #27",
+   "url":"http://garyhodgson.github.com/githubiverse-tst",
+   "authors":[
+      {
+         "name":"Gary Hodgson",
+         "url":"https://github.com/garyhodgson"
+      }
+   ],
+   "licenses":[
+      "GPL3"
+   ],
+   "thumbnail-urls":[
+      "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/test-jig.jpg"
+   ],
+   "description":"An implementation of movement #27 from \"501 Mechanical Movements\" by Henry T. Brown.\\n\\nThis is still a work in progress.",
+   "created":"2012-09-03T14:50:20.000Z",
+   "updated":"2012-09-14T21:50:52.000Z",
+   "metadata":{
+      "created":"2013-01-17T20:13:30.362Z",
+      "updated":"2013-01-17T20:13:30.362Z",
+      "submitter":{
+         "name":"Gary Hodgson",
+         "url":"http://garyhodgson.com/reprap",
+         "email":"contact@garyhodgson.com"
+      }
+   },
+   "subject":[
+      "mechanism"
+   ],
+   "media":[
+      "PLA"
+   ],
+   "categories":[
+      "mechanical movement"
+   ],
+   "tags":[
+      "fun"
+   ],
+   "relationships":[
+      {
+         "type":"reference",
+         "url":"http://www.strandbeest.com/beests_leg.php"
+      },
+      {
+         "type":"reference",
+         "url":"http://www.instructables.com/community/theo-jansen-mechanism-1"
+      }
+   ],
+   "bill-of-materials":[
+      {
+         "part-number":"1",
+         "description":"Frame",
+         "url":"https://github.com/garyhodgson/githubiverse-tst/raw/master/stl/MechanicalMovement27_frame.stl",
+         "type":"generated",
+         "mimetype":"application/sla",
+         "thumbnail-url":"https://github.com/garyhodgson/githubiverse-tst/raw/master/img/frame.png",
+         "x-bom-metadata":{
+            "note":"This part has not yet been tested."
+         }
+      },
+      {
+         "part-number":"2",
+         "description":"Small Wheel",
+         "url":"https://raw.github.com/garyhodgson/githubiverse-tst/master/stl/MechanicalMovement27_small_wheel.stl",
+         "type":"generated",
+         "mimetype":"application/sla",
+         "thumbnail-url":"https://github.com/garyhodgson/githubiverse-tst/raw/master/img/small_wheel.png"
+      },
+      {
+         "part-number":"3",
+         "description":"Wheel",
+         "url":"https://raw.github.com/garyhodgson/githubiverse-tst/master/stl/MechanicalMovement27_wheel.stl",
+         "type":"generated",
+         "mimetype":"application/sla",
+         "thumbnail-url":"https://github.com/garyhodgson/githubiverse-tst/raw/master/img/wheel.png"
+      },
+      {
+         "part-number":"4",
+         "description":"OpenSCAD Source Code",
+         "url":"https://raw.github.com/garyhodgson/githubiverse-tst/master/src/MechanicalMovement27.scad",
+         "type":"source",
+         "mimetype":"application/x-scad"
+      },
+      {
+         "part-number":"5",
+         "description":"623ZZ Bearing",
+         "unit":"EA",
+         "quantity":3
+      },
+      {
+         "part-number":"6",
+         "description":"M3 Bolt",
+         "unit":"EA",
+         "quantity":3
+      },
+      {
+         "part-number":"7",
+         "description":"M4 Bolt",
+         "unit":"EA",
+         "quantity":1
+      },
+      {
+         "part-number":"8",
+         "description":"M5 Bolt",
+         "unit":"EA",
+         "quantity":1
+      }
+   ],
+   "instructions":[
+      {
+         "step":1,
+         "text":"Print out the Frame, Small Wheel and Large Wheel.",
+         "image-urls":[
+            "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/frame.png",
+            "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/wheel.png",
+            "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/small_wheel.png"
+         ]
+      },
+      {
+         "step":2,
+         "text":"Attach three 623ZZ bearings to the small wheel with the short M3 bolts."
+      },
+      {
+         "step":3,
+         "text":"Connect the small and large wheel to the frame with an M4 and M5 bolt respectively.",
+         "image-urls":[
+            "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/test-jig.jpg"
+         ],
+         "x-instruction-metadata":{
+            "note":"So far the wheels have been printed and tested, but not yet the frame. This is shown in the attached image."
+         }
+      }
+   ]
+}

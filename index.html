@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>TTN Client</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap-responsive.min.css" />
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/alertify.core.css" />
+    <link rel="stylesheet" href="css/alertify.bootstrap.css" />
+    <link rel="stylesheet" href="css/ttn-client.css" />
+
+
+  </head>
+<body>
+
+  <div class="row">
+
+
+    <div class="span4">
+      <h3>Trackers</h3>
+      <h4>My</h4>
+      <div id="my-trackers"></div>
+      <h4>Following</h4>
+      <div id="following-trackers"></div>
+
+    </div>
+
+    <div class="span4">
+
+      <h3>Things</h3>
+      <h4>My</h4>
+      <div id="my-things"></div>
+      <h4>Following</h4>
+      <div id="following-things"></div>
+
+    </div>
+
+    <div class="span4">
+
+      <h3>Info</h3>
+      <div id="info">
+      <span id="info_connected_label" class="">Connected:</span>&nbsp;<span><i id="info_connected_icon" class="icon-ban-circle"></i></span>
+      <br>
+      <span id="info_joined_label" class="">Joined:</span>&nbsp;<span><i id="info_joined_icon" class="icon-ban-circle"></i></span>
+      <br>
+      TTN-Node-ID: <span id="info_ttn_node_id"></span>
+      <br>
+      TTN-Node-Address: <span id="info_ttn_node_address"></span>
+      <br>
+      Nodes: <span id="info_node_count">0</span> in <span id="info_bucket_count">0</span> buckets.
+
+      <br>
+      <a class="btn" id="refreshInfo">Refresh</a>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <div class="row">
+    <div class="span12">
+
+    <h2>Tools</h2>
+    <div id="tools">
+    Follow Node Id: <input type="text" id="followNodeId" value="b8e303108cf1de645a23c9fa8526297b3373f061"><input type="button" value="Follow" id="followNodeIdBtn">
+    <br>
+    PUT: <input type="text" id="putValue"><input type="button" value="PUT" id="putBtn">
+    <br>
+    GET: <input type="text" id="getKey"><input type="button" value="GET" id="getBtn">
+
+    <br>
+    </div>
+
+    <h4>Message Log</h4>
+    <div class="span12" id="message-log-wrapper">
+      <textarea id="message-log">
+      </textarea>
+    </div>
+
+    </div>
+  </div>
+
+
+<script src="js/vendor/jquery-1.10.1.min.js"></script>
+<script src="js/vendor/bootstrap.min.js"></script>
+<script src="js/vendor/alertify.min.js"></script>
+
+<script type="text/javascript">
+
+var _ = require('underscore');
+_.str = require('underscore.string');
+_.mixin(_.str.exports());
+
+global.$ = $;
+global._ = _;
+
+
+global.log = function(msg){
+  $('#message-log').text(msg+"\n"+$('#message-log').text());
+  alertify.log(msg);
+};
+global.success = function(msg){
+  $('#message-log').text(msg+"\n"+$('#message-log').text());
+  alertify.success(msg);
+};
+global.error = function(msg){
+  $('#message-log').text(msg+"\n"+$('#message-log').text());
+  alertify.error(msg);
+};
+
+$(function() {
+
+  app = require('./js/app.js');
+
+  $('body').on('click', '.pingNode', function(){
+    var that = this;
+
+    app.node.ping(
+      $(this).data("nodeAddress"),
+      $(this).data("nodeId"),
+      function(success){
+        var icon = success ? 'icon-ok-circle' : 'icon-ban-circle';
+        $('#'+$(that).data("nodeId")+'-status i').removeClass('icon-exclamation-sign').addClass(icon)
+      })
+  })
+
+
+  $('#followNodeIdBtn').on('click', function(){
+    app.node.findNode($('#followNodeId').val(), function(v){
+      if (v) {
+        $('#following-trackers').html("<li>"+v+"<span id='"+v._id+"-status'><i class='icon-exclamation-sign'></i></span><a href='#' class='pingNode' data-node-address='"+v._address+"' data-node-id='"+v._id+"'>ping</a></li>")
+      } else {
+        global.error("Node not found");
+      }
+    })
+  })
+
+
+  $('#getBtn').on('click', function(){
+    app.node.get($('#getKey').val(), function(v){
+      global.log(v)
+    })
+  })
+
+  $('#putBtn').on('click', function(){
+    var val = $('#putValue').val();
+    if (!val || val == ""){
+      return
+    }
+    app.node.put(null, val, null, function(v){
+      global.log(v)
+    })
+  })
+
+  $('#refreshInfo').on('click', function(){
+    $('#info_bucket_count').text(app.node._routingTable.howManyKBuckets())
+    $('#info_node_count').text(app.node._routingTable.howManyPeers())
+  });
+
+});
+
+
+</script>
+
+<script>
+  // Load library
+  var gui = require('nw.gui');
+  var win = gui.Window.get();
+  var tray = new gui.Tray({ title: 'TTN-Client', icon: 'img/trayicon.png', tooltip: 'TTN-Client' });
+
+  onload = function() {
+    win.show();
+  }
+  var menu = new gui.Menu();
+  menu.append(new gui.MenuItem({
+    label: 'quit',
+    click: function() {
+      alertify.confirm("Confirm Quit", function (e) {
+          if (e) {
+            gui.App.closeAllWindows();
+          }
+      });
+    }
+  }));
+  tray.menu = menu;
+
+  win.on('minimize', function() {
+    this.hide();
+  });
+
+  tray.on('click', function() {
+    win.show();
+  });
+</script>
+
+</body>
+</html>

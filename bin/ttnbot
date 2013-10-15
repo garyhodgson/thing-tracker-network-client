@@ -1,0 +1,51 @@
+#!/usr/bin/env node
+
+//
+// TTN Bot
+//
+
+process.listening = true;
+
+var argv  = require('optimist')
+            .usage('Usage: $0 -b 127.0.0.1:3001 -l debug --cli')
+            .alias('b', 'bootstraps')
+            .describe('b', 'comma separated list of bootstraps')
+            .alias('l', 'log')
+            .describe('l', 'log level (debug, info, warn, error, fatal)')
+            .alias('c', 'cli')
+            .describe('c', 'start repl')
+            .describe('h', 'help')
+            .alias('h', 'help')
+            .argv;
+
+if (argv.h){
+  console.log(require('optimist').help());
+  return
+}
+
+var bootstraps = argv.b||'127.0.0.1:3001'
+var config = {
+  name : 'ttnbot',
+  loglevel : argv.l||'info',
+  node : {
+    bootstraps : bootstraps.split(','),
+    reactor : {
+      protocol  : 'jsonrpc2',
+      transport : {
+        port      : parseInt(argv.port, 10) || 10000,
+        reconnect : true
+      }
+    }
+  },
+  activity   : false
+};
+
+process.env.KADOH_TRANSPORT = 'udp';
+
+var TTNBot = require('./bots/ttn-bot').TTNBot;
+var bot = new TTNBot(config);
+bot.start();
+
+if (argv.cli) {
+  require('repl').start('> ').context.node = bot.node;
+}

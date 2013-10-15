@@ -1,0 +1,3 @@
+[submodule "node_modules/kadoh"]
+	path = node_modules/kadoh
+	url = git://github.com/garyhodgson/kadoh.git

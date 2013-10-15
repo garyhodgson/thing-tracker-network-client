@@ -1,0 +1,25 @@
+#!/usr/bin/env node
+
+var util = require('util');
+process.listening = true;
+
+var name      = 'ttnbootstrap',
+    protocol  = 'jsonrpc2',
+    type      = 'udp',
+    transport = {
+      port      : 3001,
+      reconnect : true
+    },
+    config = {
+      reactor : {
+        protocol  : protocol,
+        transport : transport
+      }
+    };
+
+process.env.KADOH_TRANSPORT = type;
+var Bootstrap = require('kadoh/lib/bootstrap');
+var bootstrap = new Bootstrap(null, config);
+bootstrap.connect(function() {
+  console.log('connected', bootstrap.getAddress());
+});

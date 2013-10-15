@@ -1,0 +1,23 @@
+{
+	"version":0,
+	"ttn-node-id": "966e38a96fa6bbd3c070ec50b5154f7647e48dad",
+	"ttn-tracker-id": "e9d570eb0c8bbc2cc46c87c3df959a964be70dba",
+	"description":"An example TTN Client tracker.",
+	"maintainers":[
+		{
+			"name":"Gary Hodgson",
+			"url":"http:\/\/garyhodgson.com",
+			"email":"contact@garyhodgson.com"
+		}
+	],
+	"things":[
+		{
+			"id":"48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd",
+			"title":"strandbeest"
+		},
+		{
+			"id":"751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa",
+			"title":"Mechanical Movement #27"
+		}
+	]
+}
