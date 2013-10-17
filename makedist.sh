@@ -8,9 +8,13 @@ if [ ! -d "dist" ]; then
     exit -1
 fi
 
-zip -r dist/ttn-client.nw index.html js css img node_modules package.json README.md data bin
+rm dist/ttn-client.exe
+rm dist/ttn-client.nw
+rm dist/ttn-client-distribution.zip
+
+zip -r dist/ttn-client.nw index.html js css img node_modules package.json README.md bin
 cat dist/nw.exe dist/ttn-client.nw > dist/ttn-client.exe
 chmod +x dist/ttn-client.exe
 cd dist
-zip -r ttn-client-distribution.zip ttn-client.exe *.dll nw.pak
+zip -r ttn-client-distribution.zip ttn-client.exe ttn-config.json data *.dll nw.pak
 cd ..

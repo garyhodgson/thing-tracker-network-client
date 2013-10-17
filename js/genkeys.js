@@ -3,7 +3,11 @@ var fs = require("fs");
 var crypto = require("kadoh/lib/util/crypto");
 var crypto2 = require("crypto");
 
-var pairFilename = "./data/pair.json"
+var keyLocation = global.execPath||'.'
+
+console.log("Looking for keys in : " + keyLocation)
+
+var pairFilename = keyLocation + "/data/pair.json"
 var pair
 
 

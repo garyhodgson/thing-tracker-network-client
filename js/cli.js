@@ -26,7 +26,7 @@ process.env.KADOH_TRANSPORT = 'udp';
 var TTNNode = require("./ttn-node");
 
 var node = new TTNNode(keys.public_hash, {
-    bootstraps : ["127.0.0.1:3001"],
+    bootstraps : ["127.0.0.1:3001", "ec2-54-234-89-153.compute-1.amazonaws.com:3001"],
     reactor : {
       protocol  : 'jsonrpc2',
       transport : {

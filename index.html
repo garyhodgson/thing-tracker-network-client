@@ -48,6 +48,8 @@
       TTN-Node-Address: <span id="info_ttn_node_address"></span>
       <br>
       Nodes: <span id="info_node_count">0</span> in <span id="info_bucket_count">0</span> buckets.
+      <br>
+      Bootstraps: <span id="info_bootstraps"></span>
 
       <br>
       <a class="btn" id="refreshInfo">Refresh</a>
@@ -63,7 +65,7 @@
 
     <h2>Tools</h2>
     <div id="tools">
-    Follow Node Id: <input type="text" id="followNodeId" value="b8e303108cf1de645a23c9fa8526297b3373f061"><input type="button" value="Follow" id="followNodeIdBtn">
+    Follow Node Id: <input type="text" id="followNodeId" value=""><input type="button" value="Follow" id="followNodeIdBtn">
     <br>
     PUT: <input type="text" id="putValue"><input type="button" value="PUT" id="putBtn">
     <br>
@@ -91,6 +93,7 @@
 var _ = require('underscore');
 _.str = require('underscore.string');
 _.mixin(_.str.exports());
+var gui = global.gui = require('nw.gui');
 
 global.$ = $;
 global._ = _;
@@ -165,7 +168,7 @@ $(function() {
 
 <script>
   // Load library
-  var gui = require('nw.gui');
+
   var win = gui.Window.get();
   var tray = new gui.Tray({ title: 'TTN-Client', icon: 'img/trayicon.png', tooltip: 'TTN-Client' });
 

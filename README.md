@@ -13,11 +13,9 @@ A node-webkit/node.js client to interact with a DHT p2p network based on [KadOH]
 Some background can be found in [this Google+ post](https://plus.google.com/u/0/106465579732448802787/posts/1yuLciyHbBA).
 
 ### Running
-#### Starting a bootstrap node
-Run `bin/ttn-bootstrap`
 
-#### Starting a bot node
-Run `./bin/ttnbot -b 127.0.0.1:3001 -l debug --cli`
+#### Start a bot node
+* Run `./bin/ttnbot -b 127.0.0.1:3001 -l debug --cli`
 
 ```
 Usage: ./bin/ttnbot -b 127.0.0.1:3001 -l debug --cli
@@ -30,16 +28,16 @@ Options:
 ```
 (Note: press enter after startup if running with the `cli` option to bring focus to the repl console.)
 
-#### Starting the client
-Assuming [node-webkit](https://github.com/rogerwang/node-webkit) is installed, run `./bin/start-client` (which is a shortcut to calling `nw .` in the project folder).
+#### Start the client
+* Configure the client to reference a bootstrap node (such as the bot above)
+* Assuming [node-webkit](https://github.com/rogerwang/node-webkit) is installed, run `./bin/start-client` (which is a shortcut to calling `nw .` in the project folder).
 
-#### Starting a pool of bots
-Run `./bin/dht udp.tiny`, where 'udp.tiny' is the name of a config file in `bin/config` (without the .json extension).
+#### Start a pool of bots
+* Run `./bin/dht udp.small`, where 'udp.small' is the name of a config file in `bin/config` (without the .json extension).
 
 #### Starting in command line mode
-Run `./bin/cli`
-(Note: appears to hang the console at the moment)
-
+* Run `node js/cli.js`
+(Note: this currently appears to hang the terminal after stopping)
 
 ### Developing
 * Clone this project.
