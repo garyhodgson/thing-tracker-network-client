@@ -68,10 +68,16 @@ function publishTrackers(node){
 
 }
 
-
 function getTracker(){
-  return fs.readFileSync(execPath+"/data/trackers/tracker.json")
+  if (fs.existsSync(execPath+"/data/trackers/tracker.json")){
+    return fs.readFileSync(execPath+"/data/trackers/tracker.json");
+  }
+  if (fs.existsSync("./data/trackers/tracker.json")){
+    return fs.readFileSync("./data/trackers/tracker.json");
+  }
+  global.error("Error getting tracker.")
 }
+
 
 
 
