@@ -1,5 +1,4 @@
-var fs = require("fs")
-var nStore = require('nstore');
+var fs = require("fs");
 var _ = require("underscore");
 var crypto = require("kadoh/lib/util/crypto")
 
@@ -13,8 +12,6 @@ var argv  = require('optimist')
             .describe('b', 'comma separated list of bootstraps')
             .alias('l', 'log')
             .describe('l', 'log level (debug, info, warn, error, fatal)')
-            .alias('c', 'cli')
-            .describe('c', 'start repl')
             .alias('p', 'port')
             .describe('p', 'port')
             .alias('h', 'help')
@@ -35,8 +32,6 @@ var keys = require("./genkeys").keys
 new ConsoleLogger(logging, argv.l||'info');
 log = logging.ns('CLI');
 
-nStore = nStore.extend(require('nstore/query')());
-
 process.listening = true;
 process.env.KADOH_TRANSPORT = 'udp';
 
@@ -53,17 +48,7 @@ var node = new TTNNode(keys.public_hash, {
     }
   })
 
-var trackerStore = nStore.new('data/trackerStore.db', function () {
-    log.info("trackerStore loaded");
-
-    trackerStore.all(function(err, results){
-      log.info('trackerStore.all...');
-      log.info(_.keys(results));
-    });
-
-    init();
-  });
-
+init();
 
 function init(){
   node.connect(function() {
@@ -88,26 +73,14 @@ function publishTrackers(node){
 
   log.info("trackerKey = ",trackerKey);
 
-  trackerStore.get(trackerKey, function(err, doc, key){
-    if (err) {
-      log.warn("key not found in store");
-      trackerStore.save(trackerKey, tracker, function(){
-          log.info("tracker added to store");
-      })
+  node.put(trackerKey, trackerString, null, function(key){
+    log.debug("key = ",key);
+    if (key){
+      log.info("put tracker with key: " + key);
+    } else {
+      log.error("Error publishing tracker");
     }
-
-    log.debug(tracker);
-
-    node.put(trackerKey, trackerString, null, function(key){
-      log.debug("key = ",key);
-      if (key){
-        log.info("put tracker with key: " + key);
-      } else {
-        log.error("Error publishing tracker");
-      }
-    }, this)
-
- });
+  }, this)
 
 }
 
@@ -119,11 +92,7 @@ function getTracker(){
   return tracker.toString();
 }
 
-
-
 exports.node = node;
 
-if (argv.cli){
-  log.info("Starting REPL...")
-  require('repl').start('> ').context.node = node;
-}
+log.info("Starting REPL...")
+require('repl').start('> ').context.node = node;

@@ -31,7 +31,10 @@ var config = {
   loglevel : argv.l||'info',
   node : {
     bootstraps : bootstraps.split(','),
-    persistence: 'memory',
+    persistence: {
+      type: 'nstore',
+      location: './data/NStorePersistentStorage.db'
+    },
     reactor : {
       protocol  : 'jsonrpc2',
       transport : {

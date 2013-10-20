@@ -31,6 +31,7 @@ nconf.file({ file: global.configFile });
 if (fs.existsSync(global.gui.App.dataPath + '/ttn-config.json')){
   nconf.file({ file: global.gui.App.dataPath + '/ttn-config.json' })
 }
+
 nconf.defaults({
         "bootstraps" : ["127.0.0.1:3001"],
         "port": 9880,

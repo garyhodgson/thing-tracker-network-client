@@ -1,0 +1,10 @@
+node.ping('127.0.0.1:10000','737913006d8bac96f937aa3f084bbc7a88b22781', function(){console.log(arguments)})
+
+node.get('a9993e364706816aba3e25717850c26c9cd0d89d', function(a){console.log(a)})
+
+node.put(null, 'abc', function(){console.log(arguments)})
+
+node._store._store._index
+
+node._routingTable._kbuckets[0].array
+
