@@ -50,6 +50,8 @@
       Nodes: <span id="info_node_count">0</span> in <span id="info_bucket_count">0</span> buckets.
       <br>
       Bootstraps: <span id="info_bootstraps"></span>
+      <br>
+      Peers: <span id="info_peers"></span>
 
       <br>
       <a class="btn" id="refreshInfo">Refresh</a>
@@ -159,6 +161,10 @@ $(function() {
   $('#refreshInfo').on('click', function(){
     $('#info_bucket_count').text(app.node._routingTable.howManyKBuckets())
     $('#info_node_count').text(app.node._routingTable.howManyPeers())
+
+    $('#info_peers').text(
+        _.flatten(app.node._routingTable._kbuckets.map(function(b){return b.array.map(function(x){return x._address+'#'+x._id})})).join("\n")
+      )
   });
 
 });

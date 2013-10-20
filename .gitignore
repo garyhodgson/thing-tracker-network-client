@@ -2,4 +2,3 @@ node_modules
 data/pair.json
 data/trackerStore.db
 dist
-data.example

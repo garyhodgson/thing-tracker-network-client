@@ -1,8 +1,24 @@
 var fs = require("fs");
 var path = require("path");
 var execPath = global.execPath = path.dirname(process.execPath);
-var keys = require("./genkeys").keys;
 var nconf = require('nconf');
+
+var argv  = require('optimist')
+            .parse(global.gui.App.argv);
+
+if (argv.d) {
+  global.dataPath = argv.d;
+} else {
+  global.dataPath = './data';
+}
+console.log("global.dataPath = " + global.dataPath);
+
+if (argv.c) {
+  global.configFile = argv.c;
+  console.log("global.configFile = " + global.configFile);
+}
+
+var keys = require("./genkeys").keys;
 
 process.listening = true;
 process.env.KADOH_TRANSPORT = 'udp';
@@ -11,8 +27,9 @@ var TTNNode = require("./ttn-node");
 
 console.log("execPath: " + execPath)
 
-nconf.file({ file: execPath + '/ttn-config.json' })
-      .file({ file: global.gui.App.dataPath + '/ttn-config.json' })
+nconf.file({ file: global.gui.App.dataPath + '/ttn-config.json' })
+      .file({ file: global.configFile })
+      .file({ file: execPath + '/ttn-config.json' })
       .defaults({
         "bootstraps" : ["127.0.0.1:3001"],
         "port": 9880,
@@ -24,6 +41,7 @@ nconf.file({ file: execPath + '/ttn-config.json' })
 
 var node = new TTNNode(keys.public_hash, {
     bootstraps : nconf.get('bootstraps'),
+    persistence: 'memory',
     reactor : {
       protocol  : 'jsonrpc2',
       transport : {

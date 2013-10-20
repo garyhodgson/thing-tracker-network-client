@@ -3,22 +3,25 @@ var fs = require("fs");
 var crypto = require("kadoh/lib/util/crypto");
 var crypto2 = require("crypto");
 
-var keyLocation = global.execPath||'.'
+var keyLocation;
 
-console.log("Looking for keys in : " + keyLocation+ "/data")
-
-if (! fs.existsSync(keyLocation + "/data")){
-	keyLocation = "."
-
-	console.log("Looking for keys in : " + keyLocation+ "/data")
-	if (! fs.existsSync(keyLocation + "/data")){
-		throw new Error('unable to find data directory.')
-	}
+if (global.dataPath){
+	keyLocation = global.dataPath;
+} else if (global.execPath){
+	keyLocation = global.execPath + '/data';
+} else {
+	keyLocation = './data'
 }
 
-var pairFilename = keyLocation + "/data/pair.json"
-var pair
+console.log("Looking for keys in : " + keyLocation)
 
+if (! fs.existsSync(keyLocation)){
+	throw new Error('unable to find key location.')
+}
+
+
+var pairFilename = keyLocation + "/pair.json"
+var pair
 
 if (!fs.existsSync(pairFilename)){
 
@@ -26,7 +29,7 @@ if (!fs.existsSync(pairFilename)){
 
 	pair.public_hash = crypto.digest.SHA1(pair.public)
 
-	console.log("Writing new key to " + keyLocation+ "/data");
+	console.log("Writing new key to " + keyLocation);
 
   	fs.writeFileSync(pairFilename, JSON.stringify(pair, null, 4));
 

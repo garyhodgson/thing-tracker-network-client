@@ -3,17 +3,34 @@ var nStore = require('nstore');
 var _ = require("underscore");
 var crypto = require("kadoh/lib/util/crypto")
 
-var keys = require("./genkeys").keys
 
 var logging = require('kadoh/lib/logging');
 var ConsoleLogger = require('kadoh/lib/logger/reporter/color-console')
 
 var argv  = require('optimist')
-            .usage('Usage: $0 -l debug --repl')
-            .alias('l', 'loglevel (debug, info, warn, error, fatal)')
-            .alias('repl', 'start node repl')
+            .usage('Usage: $0 -b 127.0.0.1:3001 -l debug --cli -p 9880 -d ./data')
+            .alias('b', 'bootstraps')
+            .describe('b', 'comma separated list of bootstraps')
+            .alias('l', 'log')
+            .describe('l', 'log level (debug, info, warn, error, fatal)')
+            .alias('c', 'cli')
+            .describe('c', 'start repl')
+            .alias('p', 'port')
+            .describe('p', 'port')
+            .alias('h', 'help')
+            .describe('h', 'help')
+            .alias('d', 'data')
+            .describe('d', 'path where data is stored.')
             .argv;
 
+if (argv.h){
+  console.log(require('optimist').help());
+  return
+}
+
+var dataPath = global.dataPath = argv.d||'./data';
+
+var keys = require("./genkeys").keys
 
 new ConsoleLogger(logging, argv.l||'info');
 log = logging.ns('CLI');
@@ -24,13 +41,14 @@ process.listening = true;
 process.env.KADOH_TRANSPORT = 'udp';
 
 var TTNNode = require("./ttn-node");
-
+var bootstraps = argv.b||'127.0.0.1:3001'
 var node = new TTNNode(keys.public_hash, {
-    bootstraps : ["127.0.0.1:3001", "ec2-54-234-89-153.compute-1.amazonaws.com:3001"],
+    bootstraps : bootstraps.split(','),
     reactor : {
       protocol  : 'jsonrpc2',
       transport : {
-        port:9880
+        port      : parseInt(argv.port, 10) || 9880,
+        reconnect : true
       }
     }
   })
@@ -105,7 +123,7 @@ function getTracker(){
 
 exports.node = node;
 
-if (argv.repl){
+if (argv.cli){
   log.info("Starting REPL...")
   require('repl').start('> ').context.node = node;
 }
