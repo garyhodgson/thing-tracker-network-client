@@ -25,11 +25,8 @@ process.env.KADOH_TRANSPORT = 'udp';
 
 var TTNNode = require("./ttn-node");
 
-console.log("execPath: " + execPath)
-
-nconf.file({ file: global.gui.App.dataPath + '/ttn-config.json' })
-      .file({ file: global.configFile })
-      .file({ file: execPath + '/ttn-config.json' })
+nconf.file({ file: global.configFile })
+      .file({ file: global.gui.App.dataPath + '/ttn-config.json' })
       .defaults({
         "bootstraps" : ["127.0.0.1:3001"],
         "port": 9880,
@@ -38,6 +35,8 @@ nconf.file({ file: global.gui.App.dataPath + '/ttn-config.json' })
           "publishTracker" : "true"
         }
       });
+
+console.log("nconf.get('bootstraps') = " + nconf.get('bootstraps'));
 
 var node = new TTNNode(keys.public_hash, {
     bootstraps : nconf.get('bootstraps'),
