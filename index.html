@@ -15,7 +15,6 @@
 
   <div class="row">
 
-
     <div class="span4">
       <h3>Trackers</h3>
       <h4>My</h4>
@@ -25,7 +24,7 @@
 
     </div>
 
-    <div class="span4">
+    <div class="span8">
 
       <h3>Things</h3>
       <h4>My</h4>
@@ -35,53 +34,53 @@
 
     </div>
 
-    <div class="span4">
-
-      <h3>Info</h3>
-      <div id="info">
-      <span id="info_connected_label" class="">Connected:</span>&nbsp;<span><i id="info_connected_icon" class="icon-ban-circle"></i></span>
-      <br>
-      <span id="info_joined_label" class="">Joined:</span>&nbsp;<span><i id="info_joined_icon" class="icon-ban-circle"></i></span>
-      <br>
-      TTN-Node-ID: <span id="info_ttn_node_id"></span>
-      <br>
-      TTN-Node-Address: <span id="info_ttn_node_address"></span>
-      <br>
-      Nodes: <span id="info_node_count">0</span> in <span id="info_bucket_count">0</span> buckets.
-      <br>
-      Bootstraps: <span id="info_bootstraps"></span>
-      <br>
-      Peers: <span id="info_peers"></span>
-
-      <br>
-      <a class="btn" id="refreshInfo">Refresh</a>
-      </div>
-
-    </div>
-
   </div>
 
 
   <div class="row">
-    <div class="span12">
 
-    <h2>Tools</h2>
-    <div id="tools">
-    Follow Node Id: <input type="text" id="followNodeId" value=""><input type="button" value="Follow" id="followNodeIdBtn">
-    <br>
-    PUT: <input type="text" id="putValue"><input type="button" value="PUT" id="putBtn">
-    <br>
-    GET: <input type="text" id="getKey"><input type="button" value="GET" id="getBtn">
-
-    <br>
+    <div class="span6">
+      <h2>Tools</h2>
+      <div id="tools">
+        Follow Node Id: <input type="text" id="followNodeId" value=""><input type="button" value="Follow" id="followNodeIdBtn">
+        <br>
+        PUT: <input type="text" id="putValue"><input type="button" value="PUT" id="putBtn">
+        <br>
+        GET: <input type="text" id="getKey"><input type="button" value="GET" id="getBtn">
+      </div>
     </div>
 
+    <div class="span6">
+
+      <h3>Info</h3>
+      <div id="info">
+        <span id="info_connected_label" class="">Connected:</span>&nbsp;<span><i id="info_connected_icon" class="icon-ban-circle"></i></span>
+        <br>
+        <span id="info_joined_label" class="">Joined:</span>&nbsp;<span><i id="info_joined_icon" class="icon-ban-circle"></i></span>
+        <br>
+        TTN-Node-ID: <span id="info_ttn_node_id"></span>
+        <br>
+        TTN-Node-Address: <span id="info_ttn_node_address"></span>
+        <br>
+        Nodes: <span id="info_node_count">0</span> in <span id="info_bucket_count">0</span> buckets.
+        <br>
+        Bootstraps: <span id="info_bootstraps"></span>
+        <br>
+        Peers: <span id="info_peers"></span>
+
+        <br>
+        <a class="btn" id="refreshInfo">Refresh</a>
+      </div>
+
+    </div>
+  </div>
+
+
+  <div class="row">
     <h4>Message Log</h4>
     <div class="span12" id="message-log-wrapper">
-      <textarea id="message-log">
+      <textarea rows=20  id="message-log">
       </textarea>
-    </div>
-
     </div>
   </div>
 
@@ -165,6 +164,24 @@ $(function() {
     $('#info_peers').text(
         _.flatten(app.node._routingTable._kbuckets.map(function(b){return b.array.map(function(x){return x._address+'#'+x._id})})).join("\n")
       )
+  });
+
+  $('body').on('click', '.downloadLink', function(){
+    var src = $(this).data('src');
+    if (src){
+      gui.Shell.openExternal(src);
+    }
+  });
+
+
+  $('body').on('click', '.infoLink', function(){
+    var thingId = $(this).data('thing-id');
+    global.log("retrieveing thingId " + thingId);
+
+    app.node.get(thingId, function(a){
+      console.log("found a ", a);
+    })
+
   });
 
 });

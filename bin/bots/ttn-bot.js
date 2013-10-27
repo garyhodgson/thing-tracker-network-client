@@ -22,7 +22,7 @@ var TTNBot = exports.TTNBot = function(options) {
   options.node.reactor.transport = options.node.reactor.transport || {};
   options.node.reactor.transport.reconnect = true;
 
-  this.node = new TTNNode(null, options.node);
+  this.node = new TTNNode(options.id, options.node);
 };
 
 TTNBot.prototype.start = function() {

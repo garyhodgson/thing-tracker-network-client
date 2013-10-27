@@ -67,7 +67,10 @@ function init(){
 function publishTrackers(node){
 
   var tracker = JSON.parse(getTracker())
-  var trackerString = JSON.stringify(tracker)
+
+  node._tracker = tracker;
+
+  var trackerString = JSON.stringify(tracker);
 
   var trackerKey = crypto.digest.SHA1(trackerString);
 

@@ -2,7 +2,8 @@
 	"version":0,
 	"ttn-node-id": "966e38a96fa6bbd3c070ec50b5154f7647e48dad",
 	"ttn-tracker-id": "e9d570eb0c8bbc2cc46c87c3df959a964be70dba",
-	"description":"An example TTN Client tracker.",
+	"title":"Gary Hodgson TTN Tracker",
+	"description":"TTN Client Tracker for Gary Hodgson.",
 	"maintainers":[
 		{
 			"name":"Gary Hodgson",
@@ -13,11 +14,13 @@
 	"things":[
 		{
 			"id":"48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd",
-			"title":"strandbeest"
+			"title":"strandbeest",
+			"ref-url" : "things/48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd.json"
 		},
 		{
 			"id":"751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa",
-			"title":"Mechanical Movement #27"
+			"title":"Mechanical Movement #27",
+			"ref-url" : "things/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa.json"
 		}
 	]
 }

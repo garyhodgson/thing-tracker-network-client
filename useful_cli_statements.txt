@@ -10,3 +10,6 @@ node._store._store.each(function(){console.log(arguments);})
 
 node._routingTable._kbuckets[0].array
 
+node.findNode('f168339df29aa3eda5c711752693b2673ce1938b', function(){console.log(arguments);})
+
+node.getTracker('127.0.0.1:10000', 'f168339df29aa3eda5c711752693b2673ce1938b', function(){console.log(arguments);})

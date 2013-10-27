@@ -15,7 +15,7 @@
   "window": {
     "icon": "img/app.png",
     "frame": true,
-    "toolbar": false,
+    "toolbar": true,
     "show": false,
     "width": 1400,
     "height": 1000,

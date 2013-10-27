@@ -16,6 +16,8 @@ var argv  = require('optimist')
             .describe('c', 'start repl')
             .alias('p', 'port')
             .describe('p', 'port')
+            .alias('i', 'id')
+            .describe('i', 'id to assign the node, otherwise one is generated')
             .alias('h', 'help')
             .describe('h', 'help')
             .argv;
@@ -28,12 +30,12 @@ if (argv.h){
 var bootstraps = argv.b||'127.0.0.1:3001'
 var config = {
   name : 'ttnbot',
+  id : argv.i||null,
   loglevel : argv.l||'info',
   node : {
     bootstraps : bootstraps.split(','),
     persistence: {
-      type: 'nstore',
-      location: './data/NStorePersistentStorage.db'
+      type: 'memory'
     },
     reactor : {
       protocol  : 'jsonrpc2',
