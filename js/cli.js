@@ -1,13 +1,17 @@
-var fs = require("fs");
-var _ = require("underscore");
-var crypto = require("kadoh/lib/util/crypto")
-
-
-var logging = require('kadoh/lib/logging');
-var ConsoleLogger = require('kadoh/lib/logger/reporter/color-console')
+var fs = require("fs"),
+    _ = require("underscore"),
+    crypto = require("kadoh/lib/util/crypto"),
+    Tracker = require('./tracker'),
+    TrackerService = require('./tracker-service'),
+    NodeService = require('./node-service'),
+    restServer = require('./rest-server'),
+    UI = require("./ui"),
+    nconf = require('nconf'),
+    TTNNode = require("./ttn-node"),
+    NodeKeys = require("./node-keys");
 
 var argv  = require('optimist')
-            .usage('Usage: $0 -b 127.0.0.1:3001 -l debug --cli -p 9880 -d ./data')
+            .usage('Usage: $0 -b 127.0.0.1:3001 -l debug -p 9880 -d ./data')
             .alias('b', 'bootstraps')
             .describe('b', 'comma separated list of bootstraps')
             .alias('l', 'log')
@@ -16,52 +20,88 @@ var argv  = require('optimist')
             .describe('p', 'port')
             .alias('h', 'help')
             .describe('h', 'help')
+            .alias('c', 'config')
+            .describe('c', 'config file.')
             .alias('d', 'data')
             .describe('d', 'path where data is stored.')
+            .alias('t', 'transient')
+            .describe('t', 'do not generate or persist keys')
             .argv;
+
 
 if (argv.h){
   console.log(require('optimist').help());
   return
 }
 
-var dataPath = global.dataPath = argv.d||'./data';
+ui = new UI({level:argv.l || 'info'})
 
-var keys = require("./genkeys").keys
+global.dataPath = argv.d || './data';
+global.configFile = argv.c;
 
-new ConsoleLogger(logging, argv.l||'info');
-log = logging.ns('CLI');
+if (global.configFile){
+  nconf.file({ file: global.configFile });
+}
+nconf.defaults({
+        "bootstraps" : [argv.b||'127.0.0.1:3001'],
+        "port": parseInt(argv.port, 10) || 9880,
+        "startup" : {
+          "joinDHT" : "true",
+          "publishTracker" : "true",
+          "startRESTServer" : "true"
+        }
+      });
 
-process.listening = true;
-process.env.KADOH_TRANSPORT = 'udp';
+var config = nconf.load();
 
-var TTNNode = require("./ttn-node");
-var bootstraps = argv.b||'127.0.0.1:3001'
-var node = new TTNNode(keys.public_hash, {
-    bootstraps : bootstraps.split(','),
+var nodeId = null;
+
+if (!argv.t){
+  var nodeKeys = new NodeKeys(global.dataPath);
+  nodeId = nodeKeys.getPublicKeyHash();
+}
+
+var node = new TTNNode(nodeId, {
+    bootstraps : config.bootstraps,
     reactor : {
       protocol  : 'jsonrpc2',
       transport : {
-        port      : parseInt(argv.port, 10) || 9880,
+        port      : config.port,
         reconnect : true
       }
     }
   })
 
-init();
+var nodeService = new NodeService(node, restServer);
+var tracker = new Tracker(global.dataPath+"/trackers/tracker.json");
+var trackerService = new TrackerService(tracker, restServer);
 
-function init(){
-  node.connect(function() {
-    log.info("connected");
+restServer.on('initialized', ui.serverEvents.initialized.bind(ui));
 
-    node.join(function() {
-      log.info('joined TTN. node id = ' + node.getID());
-      log.info('node address =' + node.getAddress())
+nodeService.on(nodeService.events.joined, function(){
+  ui.nodeServiceEvents.joined.call(ui, node.getID(), node.getAddress());
 
-      publishTrackers(node);
+  if (config.startup.publishTracker == 'true'){
+    publishTrackers(node);
+  }
+});
+
+nodeService.on(nodeService.events.connected, function(){
+  ui.nodeServiceEvents.connected.call(ui, node);
+  nodeService.join();
+});
+
+nodeService.on(nodeService.events.initialized, function(){
+  ui.nodeServiceEvents.initialized.call(ui, node);
+  if (config.startup.joinDHT == 'true'){
+    nodeService.connect();
+  }
+  if (config.startup.startRESTServer == 'true'){
+    restServer.listen(9880, function() {
+      restServer.emit('initialized', restServer.name, restServer.url);
     });
-  });
-}
+  }
+});
 
 
 function publishTrackers(node){
@@ -72,16 +112,11 @@ function publishTrackers(node){
 
   var trackerString = JSON.stringify(tracker);
 
-  var trackerKey = crypto.digest.SHA1(trackerString);
-
-  log.info("trackerKey = ",trackerKey);
-
-  node.put(trackerKey, trackerString, null, function(key){
-    log.debug("key = ",key);
+  node.put(null, trackerString, null, function(key){
     if (key){
-      log.info("put tracker with key: " + key);
+      ui.log.info("put tracker with key: " + key);
     } else {
-      log.error("Error publishing tracker");
+      ui.log.error("Error publishing tracker");
     }
   }, this)
 
@@ -97,5 +132,5 @@ function getTracker(){
 
 exports.node = node;
 
-log.info("Starting REPL...")
+ui.log.info("Starting REPL...")
 require('repl').start('> ').context.node = node;

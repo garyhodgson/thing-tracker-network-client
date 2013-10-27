@@ -6,11 +6,7 @@ var nconf = require('nconf');
 var argv  = require('optimist')
             .parse(global.gui.App.argv);
 
-if (argv.d) {
-  global.dataPath = argv.d;
-} else {
-  global.dataPath = './data';
-}
+global.dataPath = argv.d || './data';
 
 if (argv.c) {
   global.configFile = argv.c;

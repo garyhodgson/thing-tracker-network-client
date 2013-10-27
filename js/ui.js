@@ -7,7 +7,7 @@ var UI = module.exports = new Class(EventEmitter, {
     initialized: "initialized"
   },
 
-  initialize: function() {
+  initialize: function(config) {
     var that = this;
     var type,
         a;
@@ -19,44 +19,57 @@ var UI = module.exports = new Class(EventEmitter, {
       type = "console";
     }
 
-    that.uiImpl = new a();
+    UI.impl = new a(config||{});
 
     process.nextTick(function() { that.emit(that.events.initialized, type) });
   },
 
-  log: function(){
-    this.uiImpl.log.apply(this, arguments);
-  },
+  log: {
 
-  success: function(){
-    that.uiImpl.success.apply(this, arguments);
-  },
+    info: function(){
+      UI.impl.log.info.apply(this, arguments);
+    },
 
-  warn: function(){
-    that.uiImpl.warn.apply(this, arguments);
-  },
+    debug: function(){
+      UI.impl.log.debug.apply(this, arguments);
+    },
 
-  error: function(){
-    that.uiImpl.error.apply(this, arguments);
+    success: function(){
+      UI.impl.log.success.apply(this, arguments);
+    },
+
+    warn: function(){
+      UI.impl.log.warn.apply(this, arguments);
+    },
+
+    error: function(){
+      UI.impl.log.error.apply(this, arguments);
+    }
+
   },
 
   serverEvents: {
     initialized: function(name, url){
-      this.log('%s listening at %s', name, url);
+      this.log.info(name + ' listening at ' + url);
     }
   },
 
   nodeServiceEvents: {
-    initialized: function(){
-      this.log('node service initialized');
+    initialized: function(node){
+      this.log.info('node service initialized.');
+    },
+    connected: function(node){
+      this.log.info('node connected to network.');
+    },
+    joined: function(nodeID, nodeAddress){
+      this.log.info('node joined the network, id = ' + nodeID + ', address = ' + nodeAddress)
     }
   },
+
   trackerServiceEvents: {
     initialized: function(){
-      this.log('tracker service initialized');
+      this.log.info('tracker service initialized');
     }
   }
-
-
 
 });
