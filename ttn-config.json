@@ -1,11 +1,15 @@
 {
-	"bootstraps" : [
-		"127.0.0.1:3001"
-	],
-	"port": 9880,
-    "startup" : {
-      "joinNetwork" : "true",
-      "publishTracker" : "true",
-      "publishThings" : "false"
-    }
+  "dht": {
+    "bootstraps" : [
+      "127.0.0.1:3001"
+    ],
+    "port": 9880
+  },
+  "RESTServer" : {
+    "port": 9880
+  },
+	"startup" : {
+    "joinNetwork" : "true",
+    "joinDHT" : "true"
+  }
 }

@@ -2,7 +2,8 @@ var Class = require('jsclass/src/core').Class,
     EventEmitter = require('events').EventEmitter,
     keypair = require('keypair'),
     fs = require("fs"),
-    Crypto = require("crypto");
+    Crypto = require("crypto"),
+    log = require('kadoh/lib/logging').ns('NodeKeys');
 
 var NodeKeys = module.exports = new Class(EventEmitter, {
 
@@ -21,7 +22,7 @@ var NodeKeys = module.exports = new Class(EventEmitter, {
 
     if (!fs.existsSync(pairFilename)){
 
-      console.warn("Generating Keys");
+      log.warn("Generating Keys");
 
       pair = keypair();
 

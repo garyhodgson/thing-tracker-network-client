@@ -1,35 +1,11 @@
-var Class = require('jsclass/src/core').Class
+var Class = require('jsclass/src/core').Class;
+var logging = require('kadoh/lib/logging');
+var ConsoleLogger = require('kadoh/lib/logger/reporter/console')
 
-var BrowserUI = module.exports = new Class({
+var ConsoleUI = module.exports = new Class({
 
   initialize: function(config) {
-    if (config.$ === undefined){
-      throw Error("browser-ui requires Jquery reference.")
-    }
-
-    BrowserUI._$ = config.$;
-  },
-
-  log: {
-    info: function(){
-      console.log.apply(this, arguments);
-    },
-
-    debug: function(){
-      console.log.apply(this, arguments);
-    },
-
-    success: function(){
-      console.log.apply(this, arguments);
-    },
-
-    warn: function(){
-      console.warn.apply(this, arguments);
-    },
-
-    error: function(){
-      console.error.apply(this, arguments);
-    }
+    new ConsoleLogger(logging, config.level||'info');
+    ConsoleUI._log = logging.ns(config.namespace||'');
   }
-
 })

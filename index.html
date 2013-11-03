@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html ng-app="TTNClientApp">
   <head>
     <title>TTN Client</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,31 +9,28 @@
     <link rel="stylesheet" href="css/alertify.bootstrap.css" />
     <link rel="stylesheet" href="css/ttn-client.css" />
 
-
   </head>
-<body>
+<body ng-controller="AppCtrl">
 
   <div class="row">
 
     <div class="span4">
       <h3>Trackers</h3>
-      <h4>My</h4>
-      <div id="my-trackers"></div>
-      <h4>Following</h4>
-      <div id="following-trackers"></div>
-
+      <ul>
+        <li ng-repeat="tracker in trackers">
+          {{ tracker.title }}
+        </li>
+      </ul>
     </div>
 
     <div class="span8">
-
       <h3>Things</h3>
-      <h4>My</h4>
-      <div id="my-things"></div>
-      <h4>Following</h4>
-      <div id="following-things"></div>
-
+      <ul>
+        <li ng-repeat="thing in things">
+          {{ thing.title }}
+        </li>
+      </ul>
     </div>
-
   </div>
 
 
@@ -41,184 +38,68 @@
 
     <div class="span6">
       <h2>Tools</h2>
-      <div id="tools">
-        Follow Node Id: <input type="text" id="followNodeId" value=""><input type="button" value="Follow" id="followNodeIdBtn">
+      <form name="toolsForm" id="tools">
+        Follow Node Id: <input type="text" ng-model="followNodeId" value=""><input ng-click="followNode()" type="button" value="Follow" id="followNodeIdBtn">
         <br>
-        PUT: <input type="text" id="putValue"><input type="button" value="PUT" id="putBtn">
+        PUT: <input type="text" ng-model="putValue" name="putValue"><input ng-disabled="!putValue" type="button" value="PUT" ng-click="put()">
         <br>
-        GET: <input type="text" id="getKey"><input type="button" value="GET" id="getBtn">
-      </div>
+        GET: <input type="text" ng-model="getValue" name="getValue"><input ng-disabled="!getValue" type="button" value="GET" ng-click="get()">
+      </form>
     </div>
 
     <div class="span6">
 
       <h3>Info</h3>
       <div id="info">
-        <span id="info_connected_label" class="">Connected:</span>&nbsp;<span><i id="info_connected_icon" class="icon-ban-circle"></i></span>
+        <span id="info_connected_label" class="">Connected:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[dhtConnected]"></i></span>
         <br>
-        <span id="info_joined_label" class="">Joined:</span>&nbsp;<span><i id="info_joined_icon" class="icon-ban-circle"></i></span>
+        <span id="info_joined_label" class="">Joined:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[restServerConnected]"></i></span>
         <br>
-        TTN-Node-ID: <span id="info_ttn_node_id"></span>
+        TTN-Node-ID: {{ nodeId }}
         <br>
-        TTN-Node-Address: <span id="info_ttn_node_address"></span>
+        TTN-Node-Address: {{ nodeAddress }}
         <br>
-        Nodes: <span id="info_node_count">0</span> in <span id="info_bucket_count">0</span> buckets.
+        Nodes: {{ peersCount }} in {{ kBuckets }} buckets.
         <br>
-        Bootstraps: <span id="info_bootstraps"></span>
-        <br>
-        Peers: <span id="info_peers"></span>
+        Bootstraps: <ul>
+          <li ng-repeat="bootstrap in bootstraps">
+            {{ bootstrap._id }} # {{ bootstrap._address }}
+          </li>
+        </ul>
+        Peers: <ul>
+          <li ng-repeat="peer in peers">
+            {{ peer._id }} # {{ peer._address }}
+          </li>
+        </ul>
 
         <br>
-        <a class="btn" id="refreshInfo">Refresh</a>
+        <a class="btn" ng-click="refreshInfo()">Refresh</a>
       </div>
 
     </div>
   </div>
 
-
   <div class="row">
-    <h4>Message Log</h4>
     <div class="span12" id="message-log-wrapper">
-      <textarea rows=20  id="message-log">
-      </textarea>
+    <h4>Message Log</h4>
+      <ul>
+        <li ng-repeat="message in messages| reverse  track by $index ">
+          <span ng-bind-html="message"></span>
+        </li>
+      </ul>
     </div>
   </div>
 
 
-<script src="js/vendor/jquery-1.10.1.min.js"></script>
-<script src="js/vendor/bootstrap.min.js"></script>
-<script src="js/vendor/alertify.min.js"></script>
-
-<script type="text/javascript">
-
-var _ = require('underscore');
-_.str = require('underscore.string');
-_.mixin(_.str.exports());
-var gui = global.gui = require('nw.gui');
-
-global.$ = $;
-global._ = _;
-
-
-global.log = function(msg){
-  $('#message-log').text(msg+"\n"+$('#message-log').text());
-  alertify.log(msg);
-};
-global.success = function(msg){
-  $('#message-log').text(msg+"\n"+$('#message-log').text());
-  alertify.success(msg);
-};
-global.error = function(msg){
-  $('#message-log').text(msg+"\n"+$('#message-log').text());
-  alertify.error(msg);
-};
-
-$(function() {
-
-  app = require('./js/app.js');
-
-  $('body').on('click', '.pingNode', function(){
-    var that = this;
-
-    app.node.ping(
-      $(this).data("nodeAddress"),
-      $(this).data("nodeId"),
-      function(success){
-        var icon = success ? 'icon-ok-circle' : 'icon-ban-circle';
-        $('#'+$(that).data("nodeId")+'-status i').removeClass('icon-exclamation-sign').addClass(icon)
-      })
-  })
-
-
-  $('#followNodeIdBtn').on('click', function(){
-    app.node.findNode($('#followNodeId').val(), function(v){
-      if (v) {
-        $('#following-trackers').html("<li>"+v+"<span id='"+v._id+"-status'><i class='icon-exclamation-sign'></i></span><a href='#' class='pingNode' data-node-address='"+v._address+"' data-node-id='"+v._id+"'>ping</a></li>")
-      } else {
-        global.error("Node not found");
-      }
-    })
-  })
-
-
-  $('#getBtn').on('click', function(){
-    app.node.get($('#getKey').val(), function(v){
-      global.log(v)
-    })
-  })
-
-  $('#putBtn').on('click', function(){
-    var val = $('#putValue').val();
-    if (!val || val == ""){
-      return
-    }
-    app.node.put(null, val, null, function(v){
-      global.log(v)
-    })
-  })
-
-  $('#refreshInfo').on('click', function(){
-    $('#info_bucket_count').text(app.node._routingTable.howManyKBuckets())
-    $('#info_node_count').text(app.node._routingTable.howManyPeers())
-
-    $('#info_peers').text(
-        _.flatten(app.node._routingTable._kbuckets.map(function(b){return b.array.map(function(x){return x._address+'#'+x._id})})).join("\n")
-      )
-  });
-
-  $('body').on('click', '.downloadLink', function(){
-    var src = $(this).data('src');
-    if (src){
-      gui.Shell.openExternal(src);
-    }
-  });
-
-
-  $('body').on('click', '.infoLink', function(){
-    var thingId = $(this).data('thing-id');
-    global.log("retrieveing thingId " + thingId);
-
-    app.node.get(thingId, function(a){
-      console.log("found a ", a);
-    })
-
-  });
-
-});
-
-
-</script>
-
-<script>
-  // Load library
-
-  var win = gui.Window.get();
-  var tray = new gui.Tray({ title: 'TTN-Client', icon: 'img/trayicon.png', tooltip: 'TTN-Client' });
-
-  onload = function() {
-    win.show();
-  }
-  var menu = new gui.Menu();
-  menu.append(new gui.MenuItem({
-    label: 'quit',
-    click: function() {
-      alertify.confirm("Confirm Quit", function (e) {
-          if (e) {
-            gui.App.closeAllWindows();
-          }
-      });
-    }
-  }));
-  tray.menu = menu;
-
-  win.on('minimize', function() {
-    this.hide();
-  });
-
-  tray.on('click', function() {
-    win.show();
-  });
-</script>
+  <script src="js/vendor/alertify.min.js"></script>
+  <script src="js/vendor/angular.min.js"></script>
+  <script src="js/vendor/angular-sanitize.min.js"></script>
+  <script src="js/vendor/ui-bootstrap-tpls-0.6.0.min.js"></script>
+  <script src="js/app/app.js"></script>
+  <script src="js/app/services.js"></script>
+  <script src="js/app/controllers.js"></script>
+  <script src="js/app/filters.js"></script>
 
 </body>
+
 </html>

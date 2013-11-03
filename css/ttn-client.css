@@ -1,3 +1,6 @@
+
+.nav, .pagination, .carousel a { cursor: pointer; }
+
 #message-log {
   width: 100%;
 }

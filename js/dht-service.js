@@ -1,11 +1,15 @@
 var Class = require('jsclass/src/core').Class,
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    log = require('kadoh/lib/logging').ns('DHTService');
 
-var NodeService = module.exports = new Class(EventEmitter, {
+
+var DHTService = module.exports = new Class(EventEmitter, {
 
   events: {
     initialized: "initialized",
     connected: "connected",
+    disconnected: "disconnected",
+    joining: "joining",
     joined: "joined"
   },
 
@@ -22,18 +26,20 @@ var NodeService = module.exports = new Class(EventEmitter, {
       this._server.get('/node', function(req, res, next) {
         var info = {
           "node-id": that._node.getID(),
-          "key": "xyz"
+          "public-key": that._node.ttn.nodeKeys.getPublicKey()
         };
         res.send(info);
         return next();
       });
 
-      this._server.get('/node/key', function(req, res, next) {
-        res.send("xyz");
+      this._server.get('/node/public-key', function(req, res, next) {
+        res.setHeader('content-type', 'text/plain');
+        res.send(that._node.ttn.nodeKeys.getPublicKey());
         return next();
       });
 
       this._server.get('/node/id', function(req, res, next) {
+        res.setHeader('content-type', 'text/plain');
         res.send(that._node.getID());
         return next();
       });
@@ -49,8 +55,17 @@ var NodeService = module.exports = new Class(EventEmitter, {
     });
   },
 
+  disconnect: function(callback){
+    var that = this;
+    this._node.disconnect(function(){
+      that.emit(that.events.disconnected)
+      if (callback) callback();
+    }, this);
+  },
+
   join: function(){
     var that = this;
+    that.emit(that.events.joining)
     this._node.join(function() {
       that.emit(that.events.joined)
     });

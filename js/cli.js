@@ -1,14 +1,12 @@
 var fs = require("fs"),
     _ = require("underscore"),
-    crypto = require("kadoh/lib/util/crypto"),
-    Tracker = require('./tracker'),
-    TrackerService = require('./tracker-service'),
-    NodeService = require('./node-service'),
-    restServer = require('./rest-server'),
-    UI = require("./ui"),
     nconf = require('nconf'),
-    TTNNode = require("./ttn-node"),
-    NodeKeys = require("./node-keys");
+    restify = require('restify'),
+    TTNService = require('./ttn-service'),
+    UI = require('./ui/console-ui');
+
+
+var log = require('kadoh/lib/logging').ns('CLI');
 
 var argv  = require('optimist')
             .usage('Usage: $0 -b 127.0.0.1:3001 -l debug -p 9880 -d ./data')
@@ -18,6 +16,8 @@ var argv  = require('optimist')
             .describe('l', 'log level (debug, info, warn, error, fatal)')
             .alias('p', 'port')
             .describe('p', 'port')
+            .alias('r', 'restPort')
+            .describe('r', 'Port to run REST server (if different to one given with -p arg).')
             .alias('h', 'help')
             .describe('h', 'help')
             .alias('c', 'config')
@@ -28,109 +28,60 @@ var argv  = require('optimist')
             .describe('t', 'do not generate or persist keys')
             .argv;
 
-
 if (argv.h){
-  console.log(require('optimist').help());
+  log.info(require('optimist').help());
   return
 }
 
-ui = new UI({level:argv.l || 'info'})
+var ui = new UI({level:argv.l || 'info'});
 
-global.dataPath = argv.d || './data';
-global.configFile = argv.c;
-
-if (global.configFile){
-  nconf.file({ file: global.configFile });
+if (argv.c){
+  nconf.file({ file: argv.c });
 }
+
 nconf.defaults({
-        "bootstraps" : [argv.b||'127.0.0.1:3001'],
-        "port": parseInt(argv.port, 10) || 9880,
+        "dht": {
+          "bootstraps" : [argv.b||'127.0.0.1:3001'],
+          "port": parseInt(argv.port, 10) || 9880
+        },
+        "RESTServer" : {
+          "port": parseInt(argv.r, 10) || parseInt(argv.port, 10) || 9880
+        },
         "startup" : {
           "joinDHT" : "true",
-          "publishTracker" : "true",
           "startRESTServer" : "true"
-        }
+        },
+        "transient" : argv.transient?"true":"false",
+        "dataPath": argv.d || './data'
       });
 
-var config = nconf.load();
+var ttnService = module.exports = new TTNService(nconf.load());
 
-var nodeId = null;
-
-if (!argv.t){
-  var nodeKeys = new NodeKeys(global.dataPath);
-  nodeId = nodeKeys.getPublicKeyHash();
-}
-
-var node = new TTNNode(nodeId, {
-    bootstraps : config.bootstraps,
-    reactor : {
-      protocol  : 'jsonrpc2',
-      transport : {
-        port      : config.port,
-        reconnect : true
-      }
-    }
-  })
-
-var nodeService = new NodeService(node, restServer);
-var tracker = new Tracker(global.dataPath+"/trackers/tracker.json");
-var trackerService = new TrackerService(tracker, restServer);
-
-restServer.on('initialized', ui.serverEvents.initialized.bind(ui));
-
-nodeService.on(nodeService.events.joined, function(){
-  ui.nodeServiceEvents.joined.call(ui, node.getID(), node.getAddress());
-
-  if (config.startup.publishTracker == 'true'){
-    publishTrackers(node);
-  }
+ttnService.on(ttnService.events.displayStats, function(stats){
+    log.info("Stats:\nDHT Connected: " + stats.dhtConnected
+    + "\nREST Server Connected: "+ stats.restServerConnected
+    + "\nTTN-Node-ID: " + stats.ttnNodeId
+    + "\nTTN-Node-Address: " + stats.ttnNodeAddress
+    + "\nNodes: " + stats.peerCount + " in " +stats.bucketCount +" buckets."
+    + "\nBootstraps: " + stats.bootstraps
+    + "\nPeers: " + stats.peerList.join("\n"));
 });
 
-nodeService.on(nodeService.events.connected, function(){
-  ui.nodeServiceEvents.connected.call(ui, node);
-  nodeService.join();
-});
-
-nodeService.on(nodeService.events.initialized, function(){
-  ui.nodeServiceEvents.initialized.call(ui, node);
-  if (config.startup.joinDHT == 'true'){
-    nodeService.connect();
-  }
-  if (config.startup.startRESTServer == 'true'){
-    restServer.listen(9880, function() {
-      restServer.emit('initialized', restServer.name, restServer.url);
-    });
+ttnService.on(ttnService.events.foundNode, function(nodeId, node){
+  if (node){
+    log.info("Found node with id: "+nodeId +" - "+ node);
+  } else {
+    log.error("Unable to find node with id: " + nodeId);
   }
 });
 
 
-function publishTrackers(node){
+log.info("Starting REPL...")
 
-  var tracker = JSON.parse(getTracker())
+var repl = require('repl').start('> ').on('exit', function () {
+  ttnService.shutdown(function(){
+    process.exit();
+  });
+});
 
-  node._tracker = tracker;
-
-  var trackerString = JSON.stringify(tracker);
-
-  node.put(null, trackerString, null, function(key){
-    if (key){
-      ui.log.info("put tracker with key: " + key);
-    } else {
-      ui.log.error("Error publishing tracker");
-    }
-  }, this)
-
-}
-
-
-
-function getTracker(){
-  var tracker = fs.readFileSync("./data/trackers/tracker.json")
-
-  return tracker.toString();
-}
-
-exports.node = node;
-
-ui.log.info("Starting REPL...")
-require('repl').start('> ').context.node = node;
+repl.context.t = ttnService;
