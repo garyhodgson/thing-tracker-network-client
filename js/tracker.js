@@ -24,6 +24,13 @@ var Tracker = module.exports = klass({
     return this._tracker;
   },
 
+  getThingsAsync: function(callback){
+    var that = this;
+    _.each(this._tracker.things, function(thing, index, list){
+      callback(that.getThing(thing.id));
+    });
+  },
+
   getThing: function(id){
     var thingRef = _.find(this._tracker.things||[], function(it){ return it.id == id; });
     if (_.isUndefined(thingRef)){

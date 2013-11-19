@@ -1,41 +1,37 @@
 var logging = require('kadoh/lib/logging'),
     AngularConsole = require('./js/ui/angular-console'),
-    eventbus = require('./js/event-bus');
+    eventbus = require('./js/event-bus'),
+    gui = require('nw.gui');
+
 
 angular.module('TTNClientApp.controllers', [])
 
-  .controller('AppCtrl', ['$scope', 'ttnService','argv', function($scope, ttnService, argv) {
+  .controller('AppCtrl', ['$scope', '$timeout', 'ttnService','argv', function($scope, $timeout, ttnService, argv) {
 
-    $scope.nodeId = "";
-    $scope.nodeAddress = "";
     $scope.messages = [];
     $scope.things = [];
-    $scope.trackers = [];
-    $scope.bootstraps = "";
-    $scope.peers = [];
-    $scope.peersCount =  0;
-    $scope.kBuckets = 0;
-    $scope.dhtConnected = false;
-    $scope.restServerConnected = false;
+    $scope.tracker = [];
+    $scope.stats = {}
 
     $scope.notifier = alertify;
 
-    new AngularConsole(logging, argv.l||'info', $scope);
+    new AngularConsole(logging, argv.l||'info', $scope, $timeout);
 
     ttnService.on(ttnService.events.displayStats, function(stats){
-      $scope.nodeId = stats.ttnNodeId;
-      $scope.nodeAddress = stats.ttnNodeAddress;
-      $scope.peersCount = stats.peerCount;
-      $scope.kBuckets = stats.bucketCount;
-      $scope.peers = stats.peerList;
-      $scope.bootstraps = stats.bootstraps;
-      $scope.dhtConnected = stats.dhtConnected;
-      $scope.restServerConnected = stats.restServerConnected;
+     $scope.stats = stats;
+    });
+
+    ttnService.on(ttnService.events.initialized, function(){
+      log.info("ttnService.events.initialized")
+      $scope.tracker = ttnService.tracker.getTracker();
+      ttnService.tracker.getThingsAsync(function(thing){
+        $scope.things.push(thing);
+      });
     });
 
     ttnService.on(ttnService.events.foundNode, function(nodeId, node){
       if (node){
-        log.info("Found node with id: "+nodeId +" - "+ node);
+        log.info("Found node with id: "+nodeId);
       } else {
         log.error("Unable to find node with id: " + nodeId);
       }
@@ -62,7 +58,28 @@ angular.module('TTNClientApp.controllers', [])
     };
 
     $scope.followNode = function(){
+      if ($scope.followNodeId == undefined){
+        log.warn("No Node ID given");
+        return;
+      }
       ttnService.findNode($scope.followNodeId);
+    };
+
+    $scope.getRemoteTracker = function(){
+      log.info("Retrieving tracker for node " + $scope.followNodeId);
+      /*ttnService.getRemoteTracker($scope.followNodeId, function(tracker){
+        log.info(tracker);
+      });*/
+    };
+
+    $scope.showThing = function(id){
+      log.info("Retrieving information for thing " + id);
+      var thingJson = ttnService.tracker.getThing(id);
+      $scope.things.push(thingJson);
+    };
+
+    $scope.navigateToThingURL = function(url){
+      gui.Shell.openExternal(url);
     }
 
   }]);

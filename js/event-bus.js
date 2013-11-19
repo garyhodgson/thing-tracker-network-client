@@ -6,7 +6,10 @@ var EventBus = new Class(EventEmitter, {
   events: {
     initialized: "initialized",
     dhtService: {
-      joined: "joined"
+      joined: "dhtService.joined"
+    },
+    tracker: {
+      loaded: "tracker.loaded"
     }
   },
 

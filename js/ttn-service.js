@@ -124,7 +124,7 @@ var TTNService = module.exports = new Class(EventEmitter, {
     })
   },
 
-  getTracker: function(nodeId, callback){
+  getRemoteTracker: function(nodeId, callback){
     var that = this;
     var _success = function(tracker){
       if (callback){

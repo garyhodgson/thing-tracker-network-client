@@ -19,18 +19,20 @@ var make_title = function(ns, event) {
 
 var AngularConsole = module.exports = new Class({
 
-  initialize: function(logemiter, level, $scope) {
+  initialize: function(logemiter, level, $scope, $timeout) {
+
+    this.setLevel(level || 'error');
+    this.$scope = $scope;
+    this.$timeout = $timeout
 
     logemiter.onAny(function(level, log) {
       if(LOG_LEVEL[level] >= this.level && typeof this[level] !== 'undefined') {
         var that = this;
-        $scope.$apply(function(){
-          that[level](log);
-        });
+          $timeout(function(){
+            that[level](log);
+          });
       }
     }, this);
-    this.setLevel(level || 'error');
-    this.$scope = $scope;
   },
 
   _logMessage : function(msg){
@@ -68,6 +70,7 @@ var AngularConsole = module.exports = new Class({
     log.args.unshift(title);
     console.warn.apply(console, log.args);
     this._logMessage("[WARN] ".bold.yellow + log.args.join(" "))
+    this._notify('error', "[WARN] ".bold + log.args.join(" "));
   },
 
   error : function(log) {

@@ -15,19 +15,22 @@
   <div class="row">
 
     <div class="span4">
-      <h3>Trackers</h3>
-      <ul>
-        <li ng-repeat="tracker in trackers">
-          {{ tracker.title }}
-        </li>
-      </ul>
+      <h3>Tracker</h3>
+        <h4>{{ tracker.title }}</h4>
+        <p>{{ tracker.description }}</p>
+        <p>{{ tracker.things.length }} things.</p>
     </div>
 
     <div class="span8">
       <h3>Things</h3>
       <ul>
         <li ng-repeat="thing in things">
-          {{ thing.title }}
+          <h4>{{ thing.title }}</h4>
+          <img class="thumbnail" width="50" ng-show="thing['thumbnail-urls'][0]" src="{{thing['thumbnail-urls'][0]}}">
+          <p ng-bind-html="thing.description | nl2br"></p>
+          <a href="#" ng-click="navigateToThingURL(thing.url)">Visit URL</a>
+          <a href="#" ng-click="showThing(thing.id)">More Details</a>
+          <hr>
         </li>
       </ul>
     </div>
@@ -39,7 +42,9 @@
     <div class="span6">
       <h2>Tools</h2>
       <form name="toolsForm" id="tools">
-        Follow Node Id: <input type="text" ng-model="followNodeId" value=""><input ng-click="followNode()" type="button" value="Follow" id="followNodeIdBtn">
+        Node Id: <input type="text" ng-model="followNodeId" value="">
+          <input ng-click="followNode()" type="button" value="Follow" id="followNodeIdBtn">
+          <input ng-click="getRemoteTracker()" type="button" value="Get Tracker" id="getRemoteTrackerBtn">
         <br>
         PUT: <input type="text" ng-model="putValue" name="putValue"><input ng-disabled="!putValue" type="button" value="PUT" ng-click="put()">
         <br>
@@ -51,23 +56,23 @@
 
       <h3>Info</h3>
       <div id="info">
-        <span id="info_connected_label" class="">Connected:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[dhtConnected]"></i></span>
+        <span id="info_connected_label" class="">DHT Connected:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.dhtConnected]"></i></span>
         <br>
-        <span id="info_joined_label" class="">Joined:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[restServerConnected]"></i></span>
+        <span id="info_joined_label" class="">REST Connected:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.restServerConnected]"></i></span>
         <br>
-        TTN-Node-ID: {{ nodeId }}
+        TTN-Node-ID: {{ stats.ttnNodeId }}
         <br>
-        TTN-Node-Address: {{ nodeAddress }}
+        TTN-Node-Address: {{ stats.ttnNodeAddress }}
         <br>
-        Nodes: {{ peersCount }} in {{ kBuckets }} buckets.
+        Nodes: {{ stats.peerCount }} in {{ stats.bucketCount }} buckets.
         <br>
         Bootstraps: <ul>
-          <li ng-repeat="bootstrap in bootstraps">
+          <li ng-repeat="bootstrap in stats.bootstraps">
             {{ bootstrap._id }} # {{ bootstrap._address }}
           </li>
         </ul>
         Peers: <ul>
-          <li ng-repeat="peer in peers">
+          <li ng-repeat="peer in stats.peerList">
             {{ peer._id }} # {{ peer._address }}
           </li>
         </ul>
