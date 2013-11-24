@@ -1,5 +1,6 @@
 var Class = require('jsclass/src/core').Class,
-    EventEmitter = require('events').EventEmitter;
+    EventEmitter = require('events').EventEmitter,
+    restify = require('restify');
 
 var TrackerService = module.exports = new Class(EventEmitter, {
 
@@ -20,12 +21,22 @@ var TrackerService = module.exports = new Class(EventEmitter, {
       return next();
     });
 
-    that._server.get('/tracker/thing/:id', function(req, res, next) {
+
+    that._server.get('/thing/:id', function(req, res, next) {
       res.send(that._tracker.getThing(req.params.id)||404);
       return next();
     });
 
-    that._server.get('/tracker/subtracker/:id', function(req, res, next) {
+    that._server.get('/thing/:id/:version', function(req, res, next) {
+      res.send(that._tracker.getThing(req.params.id,req.params.version)||404);
+      return next();
+    });
+
+    that._server.get(/\/thing\/?.*/, restify.serveStatic({
+      directory: './data'
+    }));
+
+    that._server.get('/subtracker/:id', function(req, res, next) {
       res.send(that._tracker.getSubTracker(req.params.id)||404);
       return next();
     });

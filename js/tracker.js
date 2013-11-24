@@ -1,12 +1,13 @@
 var klass = require('klass'),
     _ = require('underscore'),
     fs = require("fs"),
+    log = require('kadoh/lib/logging').ns('Tracker'),
     path = require("path");
 
 var Tracker = module.exports = klass({
 
   initialize: function(tracker) {
-    if (tracker === undefined) throw Error("No tracker");
+    if (_.isUndefined(tracker)) throw Error("No tracker");
 
     if (_.isString(tracker)){
       if (!fs.existsSync(tracker)){
@@ -24,28 +25,39 @@ var Tracker = module.exports = klass({
     return this._tracker;
   },
 
-  getThingsAsync: function(callback){
+  getThingsSummaryAsync: function(callback){
     var that = this;
     _.each(this._tracker.things, function(thing, index, list){
-      callback(that.getThing(thing.id));
+      var t = that.getThing(thing.id, thing['latestVersion']);
+      if (! _.isUndefined(t)){
+        callback({
+          id: t.id,
+          title: t.title,
+          thumbnail: t['thumbnails'][0],
+          url: t.url
+        });
+      }
     });
   },
 
-  getThing: function(id){
-    var thingRef = _.find(this._tracker.things||[], function(it){ return it.id == id; });
-    if (_.isUndefined(thingRef)){
+  getThing: function(id, version){
+
+    var v = version;
+    if (_.isUndefined(v)){
+      var latestVersionFilename = './data/thing/'+id+'/latest';
+
+      if (!fs.existsSync(latestVersionFilename)){
+        return undefined;
+      }
+      v = fs.readFileSync(latestVersionFilename);
+    }
+
+    var thingFilename = './data/thing/'+id+'/'+v+'/thing.json';
+    if (!fs.existsSync(thingFilename)){
       return undefined;
     }
 
-    if (_.isUndefined(thingRef['ref-url'])){
-      return thingRef;
-    }
-
-    if (!fs.existsSync('./data/'+thingRef['ref-url'])){
-      return thingRef;
-    }
-
-    var thing = JSON.parse(fs.readFileSync('./data/'+thingRef['ref-url']));
+    var thing = JSON.parse(fs.readFileSync(thingFilename));
 
     return thing;
   },

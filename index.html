@@ -12,94 +12,29 @@
   </head>
 <body ng-controller="AppCtrl">
 
-  <div class="row">
-
-    <div class="span4">
-      <h3>Tracker</h3>
-        <h4>{{ tracker.title }}</h4>
-        <p>{{ tracker.description }}</p>
-        <p>{{ tracker.things.length }} things.</p>
-    </div>
-
-    <div class="span8">
-      <h3>Things</h3>
-      <ul>
-        <li ng-repeat="thing in things">
-          <h4>{{ thing.title }}</h4>
-          <img class="thumbnail" width="50" ng-show="thing['thumbnail-urls'][0]" src="{{thing['thumbnail-urls'][0]}}">
-          <p ng-bind-html="thing.description | nl2br"></p>
-          <a href="#" ng-click="navigateToThingURL(thing.url)">Visit URL</a>
-          <a href="#" ng-click="showThing(thing.id)">More Details</a>
-          <hr>
-        </li>
+  <div class="navbar">
+    <div class="navbar-inner">
+      <a class="brand" href="#">TTN Client</a>
+      <ul class="nav">
+        <li><a href="#/">Home</a></li>
+        <li><a href="#/settings">Settings</a></li>
+        <li><a href="#/tools">Tools</a></li>
+        <li><a href="#/log">Log</a></li>
       </ul>
     </div>
   </div>
 
-
-  <div class="row">
-
-    <div class="span6">
-      <h2>Tools</h2>
-      <form name="toolsForm" id="tools">
-        Node Id: <input type="text" ng-model="followNodeId" value="">
-          <input ng-click="followNode()" type="button" value="Follow" id="followNodeIdBtn">
-          <input ng-click="getRemoteTracker()" type="button" value="Get Tracker" id="getRemoteTrackerBtn">
-        <br>
-        PUT: <input type="text" ng-model="putValue" name="putValue"><input ng-disabled="!putValue" type="button" value="PUT" ng-click="put()">
-        <br>
-        GET: <input type="text" ng-model="getValue" name="getValue"><input ng-disabled="!getValue" type="button" value="GET" ng-click="get()">
-      </form>
-    </div>
-
-    <div class="span6">
-
-      <h3>Info</h3>
-      <div id="info">
-        <span id="info_connected_label" class="">DHT Connected:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.dhtConnected]"></i></span>
-        <br>
-        <span id="info_joined_label" class="">REST Connected:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.restServerConnected]"></i></span>
-        <br>
-        TTN-Node-ID: {{ stats.ttnNodeId }}
-        <br>
-        TTN-Node-Address: {{ stats.ttnNodeAddress }}
-        <br>
-        Nodes: {{ stats.peerCount }} in {{ stats.bucketCount }} buckets.
-        <br>
-        Bootstraps: <ul>
-          <li ng-repeat="bootstrap in stats.bootstraps">
-            {{ bootstrap._id }} # {{ bootstrap._address }}
-          </li>
-        </ul>
-        Peers: <ul>
-          <li ng-repeat="peer in stats.peerList">
-            {{ peer._id }} # {{ peer._address }}
-          </li>
-        </ul>
-
-        <br>
-        <a class="btn" ng-click="refreshInfo()">Refresh</a>
-      </div>
-
-    </div>
+  <div class="container">
+    <ng-view ></ng-view>
   </div>
-
-  <div class="row">
-    <div class="span12" id="message-log-wrapper">
-    <h4>Message Log</h4>
-      <ul>
-        <li ng-repeat="message in messages| reverse  track by $index ">
-          <span ng-bind-html="message"></span>
-        </li>
-      </ul>
-    </div>
-  </div>
-
 
   <script src="js/vendor/alertify.min.js"></script>
-  <script src="js/vendor/angular.min.js"></script>
+  <script src="js/vendor/angular.js"></script>
+  <script src="js/vendor/angular-route.js"></script>
   <script src="js/vendor/angular-sanitize.min.js"></script>
   <script src="js/vendor/ui-bootstrap-tpls-0.6.0.min.js"></script>
+  <script src="js/vendor/moment.js"></script>
+  <script src="js/vendor/ng-time-relative.min.js"></script>
   <script src="js/app/app.js"></script>
   <script src="js/app/services.js"></script>
   <script src="js/app/controllers.js"></script>

@@ -1,0 +1,21 @@
+<div class="row-fluid">
+
+  <div class="span4">
+    <h3>Tracker</h3>
+      <h4>{{ tracker.title }}</h4>
+      <p>{{ tracker.description }}</p>
+      <p>{{ tracker.things.length }} things.</p>
+  </div>
+
+  <div class="span8">
+    <h3>Things</h3>
+    <ul class="thing-list">
+      <li ng-repeat="thing in thingsSummary">
+
+        <img class="pull-left thumbnail" width="50" ng-show="thing.thumbnail" ng-src="{{ resourcePath(thing.thumbnail) }}">
+        <h4><a href="#/thing/{{ thing.id }}">{{ thing.title }}</a></h4>
+        <hr>
+      </li>
+    </ul>
+  </div>
+</div>

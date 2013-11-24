@@ -5,14 +5,46 @@ var EventEmitter = require('events').EventEmitter;
 
 var app = angular.module('TTNClientApp', [
     'ngSanitize',
+    'ngRoute',
+    'timeRelative',
     'ui.bootstrap',
     'TTNClientApp.filters',
     'TTNClientApp.services',
     'TTNClientApp.controllers'
   ])
 
-  .config(function(){
+  .config(function($routeProvider, $locationProvider){
+
     global.eventbus = global.eventbus || new EventEmitter();
+
+    $routeProvider.when('/', {
+      templateUrl: 'views/tracker.html'
+    });
+
+    $routeProvider.when('/thing/:id', {
+      templateUrl: 'views/thing.html',
+      controller: 'ThingCtrl'
+    });
+
+    $routeProvider.when('/thing/:id/:version', {
+      templateUrl: 'views/thing.html',
+      controller: 'ThingCtrl'
+    });
+
+    $routeProvider.when('/settings', {
+      templateUrl: 'views/settings.html'
+    });
+
+    $routeProvider.when('/tools', {
+      templateUrl: 'views/tools.html'
+    });
+
+    $routeProvider.when('/log', {
+      templateUrl: 'views/log.html'
+    });
+
+    $locationProvider.html5Mode(false);
+
   })
 
   .run(function(){

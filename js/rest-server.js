@@ -1,8 +1,11 @@
 var restify = require('restify');
 
-var RestServer = restify.createServer()
+var restServer = restify.createServer()
 
-RestServer.get('/', function(req,res,next){
+restServer.use(restify.acceptParser(restServer.acceptable));
+restServer.use(restify.jsonp());
+
+restServer.get('/', function(req,res,next){
   res.send([{
     uri:"/node",
     description:"Information about this node"
@@ -14,4 +17,4 @@ RestServer.get('/', function(req,res,next){
   return next();
 });
 
-module.exports = RestServer
+module.exports = restServer

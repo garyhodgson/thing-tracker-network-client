@@ -29,7 +29,7 @@ var argv  = require('optimist')
             .argv;
 
 if (argv.h){
-  log.info(require('optimist').help());
+  console.log(require('optimist').help());
   return
 }
 

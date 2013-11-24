@@ -3,3 +3,4 @@ data/pair.json
 data/trackerStore.db
 data/NStorePersistentStorage.db
 dist
+logs

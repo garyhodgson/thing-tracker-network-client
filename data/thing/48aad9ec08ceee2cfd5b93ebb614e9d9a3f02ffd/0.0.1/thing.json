@@ -1,0 +1,18 @@
+{
+   "id":"48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd",
+   "title":"strandbeest",
+   "url":"http://garyhodgson.github.com/strandbeest",
+   "version":"0.0.1",
+   "authors":[
+      {
+         "name":"Gary Hodgson",
+         "url":"http://garyhodgson.com/reprap",
+         "email":"contact@garyhodgson.com"
+      }
+   ],
+   "licenses":[
+      "GPL3"
+   ],
+   "created":"2000-09-03T14:50:20.000Z",
+   "description":"Early Version!!\\n\\nMy take on implementing Theo Jansen's Strandbeest on a 3D printer."
+}

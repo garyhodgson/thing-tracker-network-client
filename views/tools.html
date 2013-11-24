@@ -1,0 +1,46 @@
+<div class="row-fluid">
+
+  <div class="span6">
+    <h2>Tools</h2>
+    <form name="toolsForm" id="tools">
+      Node Id: <input type="text" ng-model="followNodeId" name="followNodeId" value="">
+        <input ng-click="followNode()" type="button" value="Follow" id="followNodeIdBtn">
+        <input ng-click="getRemoteTracker()" type="button" value="Get Tracker" id="getRemoteTrackerBtn">
+      <br>
+      PUT: <input type="text" ng-model="putValue" name="putValue"><input ng-disabled="!putValue" type="button" value="PUT" ng-click="put()">
+      <br>
+      GET: <input type="text" ng-model="getValue" name="getValue"><input ng-disabled="!getValue" type="button" value="GET" ng-click="get()">
+    </form>
+  </div>
+
+  <div class="span6">
+
+    <h3>Info</h3>
+    <div id="info">
+      <span id="info_connected_label" class="">DHT Connected:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.dhtConnected]"></i></span>
+      <br>
+      <span id="info_joined_label" class="">REST Connected:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.restServerConnected]"></i></span>
+      <br>
+      TTN-Node-ID: {{ stats.ttnNodeId }}
+      <br>
+      TTN-Node-Address: {{ stats.ttnNodeAddress }}
+      <br>
+      Nodes: {{ stats.peerCount }} in {{ stats.bucketCount }} buckets.
+      <br>
+      Bootstraps: <ul>
+        <li ng-repeat="bootstrap in stats.bootstraps">
+          {{ bootstrap._id }} # {{ bootstrap._address }}
+        </li>
+      </ul>
+      Peers: <ul>
+        <li ng-repeat="peer in stats.peerList">
+          {{ peer._id }} # {{ peer._address }}
+        </li>
+      </ul>
+
+      <br>
+      <a class="btn" ng-click="refreshInfo()">Refresh</a>
+    </div>
+
+  </div>
+</div>

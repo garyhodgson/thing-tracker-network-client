@@ -1,0 +1,10 @@
+<div class="row">
+  <div class="span12" id="message-log-wrapper">
+  <h4>Message Log</h4>
+    <ul>
+      <li ng-repeat="message in messages| reverse  track by $index ">
+        <span ng-bind-html="message"></span>
+      </li>
+    </ul>
+  </div>
+</div>

@@ -2,6 +2,7 @@ var RPC       = require('kadoh/lib/network/rpc/rpc'),
     globals   = require('kadoh/lib/globals'),
     PeerArray = require('kadoh/lib/util/peerarray');
 
+//NOTE: Not used as the DHT has a restriction on how much data can be stored/transmitted via UDP.  Left here at the moment  for reference.
 var GetTrackerRPC = module.exports = RPC.extend({
 
   initialize: function(queried_peer) {

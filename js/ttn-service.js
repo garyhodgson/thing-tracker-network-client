@@ -48,13 +48,13 @@ var TTNService = module.exports = new Class(EventEmitter, {
     }
 
     var dhtService = this.dhtService = new DHTService(node, restServer);
-    var tracker = this.tracker = new Tracker(config.dataPath+"/trackers/tracker.json");
+    var tracker = this.tracker = new Tracker(config.dataPath+"/tracker/tracker.json");
     var trackerService = this.trackerService = new TrackerService(tracker, restServer);
 
     /* Wire up events */
 
     restServer.on('initialized', function(name, url){
-      log.info(name + ' listening at ' + url);
+      log.debug(name + ' listening at ' + url);
     });
 
     dhtService.on(dhtService.events.joined, function(){
@@ -63,14 +63,14 @@ var TTNService = module.exports = new Class(EventEmitter, {
       log.info('node joined the network, id = ' + node.getID() + ', address = ' + node.getAddress());
     })
     .on(dhtService.events.joining, function(){
-      log.info('node joining network...');
+      log.debug('node joining network...');
     })
     .on(dhtService.events.connected, function(){
-      log.info('node connected to network.');
+      log.debug('node connected to network.');
       dhtService.join();
     })
     .on(dhtService.events.initialized, function(){
-      log.info('node service initialized.');
+      log.debug('node service initialized.');
 
       if (config.startup.joinDHT == 'true'){
         dhtService.connect();
@@ -134,6 +134,7 @@ var TTNService = module.exports = new Class(EventEmitter, {
       }
     }
     var _getTracker = function(node,callback){
+
       restify.createJsonClient({url: 'http://' + node._address}).get('/tracker', function(err, req, res, obj) {
         if (err) throw err;
         node.tracker = obj;

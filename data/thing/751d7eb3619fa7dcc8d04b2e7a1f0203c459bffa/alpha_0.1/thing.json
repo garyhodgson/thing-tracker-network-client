@@ -2,7 +2,7 @@
    "id":"751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa",
    "title":"Mechanical Movement #27",
    "url":"http://garyhodgson.github.com/githubiverse-tst",
-   "download-url": "magnet:?xt=urn:btih:F5BD5A1EC91BA12396732F4EBC2B083D333A3310&dn=mechanical-movement-27&ws=http%3a%2f%2fgaryhodgson.com%2fwebseeds%2fmechanical-movement-27%2f",
+   "version": "alpha_0.1",
    "authors":[
       {
          "name":"Gary Hodgson",
@@ -12,10 +12,10 @@
    "licenses":[
       "GPL3"
    ],
-   "thumbnail-urls":[
-      "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/test-jig.jpg"
+   "thumbnails":[
+      "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/test-jig.jpg"
    ],
-   "description":"An implementation of movement #27 from \"501 Mechanical Movements\" by Henry T. Brown.\\n\\nThis is still a work in progress.",
+   "description":"An implementation of movement #27 from \"507 Mechanical Movements\" by Henry T. Brown.\\n\\nThis is still a work in progress.",
    "created":"2012-09-03T14:50:20.000Z",
    "updated":"2012-09-14T21:50:52.000Z",
    "metadata":{
@@ -42,68 +42,64 @@
    "relationships":[
       {
          "type":"reference",
-         "url":"http://www.strandbeest.com/beests_leg.php"
-      },
-      {
-         "type":"reference",
-         "url":"http://www.instructables.com/community/theo-jansen-mechanism-1"
+         "url":"http://507movements.com/mm_027.html"
       }
    ],
-   "bill-of-materials":[
+   "billOfMaterials":[
       {
-         "part-number":"1",
+         "partNumber":"1",
          "description":"Frame",
-         "url":"https://github.com/garyhodgson/githubiverse-tst/raw/master/stl/MechanicalMovement27_frame.stl",
+         "url":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_frame.stl",
          "type":"generated",
          "mimetype":"application/sla",
-         "thumbnail-url":"https://github.com/garyhodgson/githubiverse-tst/raw/master/img/frame.png",
-         "x-bom-metadata":{
+         "thumbnailURL":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/frame.png",
+         "xBOMMetadata":{
             "note":"This part has not yet been tested."
          }
       },
       {
-         "part-number":"2",
-         "description":"Small Wheel",
-         "url":"https://raw.github.com/garyhodgson/githubiverse-tst/master/stl/MechanicalMovement27_small_wheel.stl",
-         "type":"generated",
-         "mimetype":"application/sla",
-         "thumbnail-url":"https://github.com/garyhodgson/githubiverse-tst/raw/master/img/small_wheel.png"
-      },
-      {
-         "part-number":"3",
+         "partNumber":"3",
          "description":"Wheel",
-         "url":"https://raw.github.com/garyhodgson/githubiverse-tst/master/stl/MechanicalMovement27_wheel.stl",
+         "url":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_wheel.stl",
          "type":"generated",
          "mimetype":"application/sla",
-         "thumbnail-url":"https://github.com/garyhodgson/githubiverse-tst/raw/master/img/wheel.png"
+         "thumbnailURL":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/wheel.png"
       },
       {
-         "part-number":"4",
+         "partNumber":"2",
+         "description":"Small Wheel",
+         "url":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_small_wheel.stl",
+         "type":"generated",
+         "mimetype":"application/sla",
+         "thumbnailURL":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/small_wheel.png"
+      },
+      {
+         "partNumber":"4",
          "description":"OpenSCAD Source Code",
-         "url":"https://raw.github.com/garyhodgson/githubiverse-tst/master/src/MechanicalMovement27.scad",
+         "url":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/src/MechanicalMovement27.scad",
          "type":"source",
          "mimetype":"application/x-scad"
       },
       {
-         "part-number":"5",
+         "partNumber":"5",
          "description":"623ZZ Bearing",
          "unit":"EA",
          "quantity":3
       },
       {
-         "part-number":"6",
+         "partNumber":"6",
          "description":"M3 Bolt",
          "unit":"EA",
          "quantity":3
       },
       {
-         "part-number":"7",
+         "partNumber":"7",
          "description":"M4 Bolt",
          "unit":"EA",
          "quantity":1
       },
       {
-         "part-number":"8",
+         "partNumber":"8",
          "description":"M5 Bolt",
          "unit":"EA",
          "quantity":1
@@ -113,10 +109,10 @@
       {
          "step":1,
          "text":"Print out the Frame, Small Wheel and Large Wheel.",
-         "image-urls":[
-            "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/frame.png",
-            "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/wheel.png",
-            "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/small_wheel.png"
+         "images":[
+            "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/frame.png",
+            "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/wheel.png",
+            "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/small_wheel.png"
          ]
       },
       {
@@ -126,10 +122,10 @@
       {
          "step":3,
          "text":"Connect the small and large wheel to the frame with an M4 and M5 bolt respectively.",
-         "image-urls":[
-            "https://github.com/garyhodgson/githubiverse-tst/raw/master/img/test-jig.jpg"
+         "images":[
+            "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/test-jig.jpg"
          ],
-         "x-instruction-metadata":{
+         "xInstructionMetadata":{
             "note":"So far the wheels have been printed and tested, but not yet the frame. This is shown in the attached image."
          }
       }
