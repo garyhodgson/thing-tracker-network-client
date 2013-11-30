@@ -2,33 +2,24 @@ var logging = require('kadoh/lib/logging'),
     AngularConsole = require('./js/ui/angular-console'),
     eventbus = require('./js/event-bus'),
     gui = require('nw.gui'),
-    fs = require('fs');
+    fs = require('fs'),
+    RemoteTracker = require('./js/remote-tracker');
 
 
 angular.module('TTNClientApp.controllers', [])
 
   .controller('AppCtrl', ['$scope', '$timeout', '$sanitize', 'ttnService','argv', 'urlRegExp', function($scope, $timeout, $sanitize, ttnService, argv, urlRegExp) {
-
     $scope.dataPath = ttnService.config.dataPath;
     $scope.messages = [];
-    $scope.thingsSummary = [];
-    $scope.tracker = [];
-    $scope.stats = {}
-
     $scope.notifier = alertify;
+    $scope.thingsSummary = [];
+    $scope.trackers = [];
+    $scope.stats = {}
 
     new AngularConsole(logging, argv.l||'info', $scope, $timeout, $sanitize);
 
     ttnService.on(ttnService.events.displayStats, function(stats){
      $scope.stats = stats;
-    });
-
-    ttnService.on(ttnService.events.initialized, function(){
-      log.debug("ttnService.events.initialized")
-      $scope.tracker = ttnService.tracker.getTracker();
-      ttnService.tracker.getThingsSummaryAsync(function(thingSummary){
-        $scope.thingsSummary.push(thingSummary);
-      });
     });
 
     ttnService.on(ttnService.events.foundNode, function(nodeId, node){
@@ -39,10 +30,69 @@ angular.module('TTNClientApp.controllers', [])
       }
     });
 
+    ttnService.on(ttnService.events.initialized, function(){
+      log.debug("ttnService.events.initialized")
+      $scope.trackers.push(ttnService.tracker);
+      ttnService.tracker.mapThingsSummary(function(thingSummary){
+        $scope.thingsSummary.push(thingSummary);
+      });
+    });
+
     eventbus.on(eventbus.events.dhtService.joined, function(){
       ttnService.stats();
     });
 
+    $scope.resourcePath = function(itemLocation){
+      if (itemLocation == undefined){
+        return undefined;
+      }
+
+      if (urlRegExp.test(itemLocation)){
+        return itemLocation;
+      } else {
+        return fs.realpathSync($scope.dataPath+itemLocation);
+      }
+    };
+
+    $scope.getRemoteTracker = function(nodeId){
+      nodeId = nodeId.trim();
+      log.info("Retrieving tracker for node " + nodeId);
+
+      new RemoteTracker(nodeId, ttnService, function(tracker){
+        ttnService.addTracker(tracker);
+        $timeout(function(){
+          $scope.trackers.push(tracker);
+        });
+      });
+
+    };
+
+  }])
+
+  .controller('TrackerCtrl', ['$scope', 'ttnService', 'urlRegExp', function($scope, ttnService, urlRegExp) {
+
+    $scope.navigateToThingURL = function(url){
+      gui.Shell.openExternal(url);
+    };
+
+    $scope.showThings = function(tracker){
+      log.info("showing things for tracker with id " + tracker);
+
+      if (tracker === undefined){
+        log.error("Unable to show things as no tracker was given.");
+        return;
+      }
+
+      tracker.mapThingsSummary(function(thingSummary){
+        log.info("thingSummary" + thingSummary);
+        $scope.thingsSummary.push(thingSummary);
+      });
+
+    };
+
+  }])
+
+  .controller('ToolsCtrl', ['$scope', 'ttnService', function($scope, ttnService) {
     $scope.put = function(){
       ttnService.node.put(null, toolsForm.putValue.value, null, function(v){
         log.info(v)
@@ -59,65 +109,55 @@ angular.module('TTNClientApp.controllers', [])
       ttnService.stats();
     };
 
-    $scope.followNode = function(){
-      if (toolsForm.followNodeId.value == undefined){
+    $scope.followNode = function(nodeId){
+      nodeId = nodeId.trim();
+      if (nodeId == undefined){
         log.warn("No Node ID given");
         return;
       }
-      ttnService.findNode(toolsForm.followNodeId.value);
+      ttnService.findNode(nodeId);
     };
-
-    $scope.getRemoteTracker = function(){
-      log.info("Retrieving tracker for node " + toolsForm.followNodeId.value);
-      ttnService.getRemoteTracker(toolsForm.followNodeId.value, function(tracker){
-        log.info(tracker);
-      });
-    };
-
-    $scope.showThing = function(id){
-      log.info("Retrieving information for thing " + id);
-      var thingJson = ttnService.tracker.getThing(id);
-      $scope.things.push(thingJson);
-    };
-
-    $scope.navigateToThingURL = function(url){
-      gui.Shell.openExternal(url);
-    }
-
-    $scope.resourcePath = function(itemLocation){
-      if (itemLocation == undefined){
-        return undefined;
-      }
-
-      if (urlRegExp.test(itemLocation)){
-        return itemLocation;
-      } else {
-        return fs.realpathSync($scope.dataPath+itemLocation);
-      }
-    };
-
-
   }])
 
-  .controller('ThingCtrl', ['$scope', '$location', '$routeParams', 'ttnService',  function($scope, $location, $routeParams, ttnService) {
+  .controller('ThingCtrl', ['$scope', '$location', '$routeParams', 'ttnService',  'urlRegExp', function($scope, $location, $routeParams, ttnService, urlRegExp) {
 
-    if ($routeParams.id == undefined || $routeParams.id == ""){
+    var thingId = $routeParams.thingId;
+    var trackerId = $routeParams.trackerId;
+    var version = $routeParams.version;
+
+    if (!thingId){
       log.error("No Thing ID given.");
       $location.path( "/" );
     };
 
     $scope.dataPath = ttnService.config.dataPath;
 
-    $scope.thing = ttnService.tracker.getThing($routeParams.id, $routeParams.version);
+    if (trackerId){
 
-    if ($scope.thing == undefined){
-      log.error("Unable to find thing for ID: " + $routeParams.id);
-      $location.path( "/" );
-    }
+      var tracker = ttnService.getTracker(trackerId);
+
+      if (tracker !== undefined){
+        tracker.getThing(thingId, version, function(thing){
+            $scope.thing = thing;
+        });
+      } else {
+        log.error("Unable to find tracker with id: " + trackerId);
+      }
+
+    } else {
+      ttnService.tracker.getThing(thingId, version, function(thing){
+          $scope.thing = thing;
+
+          if ($scope.thing == undefined){
+            log.error("Unable to find thing for ID: " + thingId);
+            $location.path( "/" );
+          }
+      });
+    };
 
     $scope.downloadThing = function(){
-      if ($scope.thing['download-url'] != undefined){
-        gui.Shell.openItem($scope.thing['download-url']);
+      if ($scope.thing.downloadUrl != undefined){
+        gui.Shell.openItem($scope.thing.downloadUrl);
       } else {
         log.warn("No download link found.");
       }

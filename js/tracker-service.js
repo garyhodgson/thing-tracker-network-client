@@ -17,13 +17,12 @@ var TrackerService = module.exports = new Class(EventEmitter, {
     that._server = server;
 
     that._server.get('/tracker', function(req, res, next) {
-      res.send(that._tracker.getTracker());
+      res.send(that._tracker.getJSON());
       return next();
     });
 
-
     that._server.get('/thing/:id', function(req, res, next) {
-      res.send(that._tracker.getThing(req.params.id)||404);
+      res.send(that._tracker.getThingSync(req.params.id)||404);
       return next();
     });
 
@@ -36,7 +35,7 @@ var TrackerService = module.exports = new Class(EventEmitter, {
       directory: './data'
     }));
 
-    that._server.get('/subtracker/:id', function(req, res, next) {
+    that._server.get('/tracker/subtracker/:id', function(req, res, next) {
       res.send(that._tracker.getSubTracker(req.params.id)||404);
       return next();
     });

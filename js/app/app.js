@@ -18,15 +18,21 @@ var app = angular.module('TTNClientApp', [
     global.eventbus = global.eventbus || new EventEmitter();
 
     $routeProvider.when('/', {
-      templateUrl: 'views/tracker.html'
+      templateUrl: 'views/tracker.html',
+      controller: 'TrackerCtrl'
     });
 
-    $routeProvider.when('/thing/:id', {
+    $routeProvider.when('/tracker/:trackerId/thing/:thingId', {
       templateUrl: 'views/thing.html',
       controller: 'ThingCtrl'
     });
 
-    $routeProvider.when('/thing/:id/:version', {
+    $routeProvider.when('/thing/:thingId', {
+      templateUrl: 'views/thing.html',
+      controller: 'ThingCtrl'
+    });
+
+    $routeProvider.when('/thing/:thingId/:version', {
       templateUrl: 'views/thing.html',
       controller: 'ThingCtrl'
     });
@@ -36,7 +42,8 @@ var app = angular.module('TTNClientApp', [
     });
 
     $routeProvider.when('/tools', {
-      templateUrl: 'views/tools.html'
+      templateUrl: 'views/tools.html',
+      controller: 'ToolsCtrl'
     });
 
     $routeProvider.when('/log', {

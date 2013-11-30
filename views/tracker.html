@@ -1,10 +1,28 @@
 <div class="row-fluid">
 
   <div class="span4">
-    <h3>Tracker</h3>
-      <h4>{{ tracker.title }}</h4>
-      <p>{{ tracker.description }}</p>
-      <p>{{ tracker.things.length }} things.</p>
+    <h3>Trackers</h3>
+    <ul>
+      <li ng-repeat="tracker in trackers">
+        <small>{{ tracker.getJSON().ttnNodeId }}</small>
+        <h4>{{ tracker.getJSON().title }}</h4>
+        <p>{{ tracker.getJSON().description }}</p>
+        <p>{{ tracker.getJSON().things.length }} things.</p>
+        <p>{{ tracker.getJSON().trackers.length || 0}} sub-trackers.</p>
+        <button ng-click="showThings(tracker)">Show Things</button>
+        <span ng-hide="{{tracker.isRoot()}}">
+          <button>Save</button>
+          <button>Follow</button>
+        </span>
+        <hr>
+      </li>
+    </ul>
+
+    <div>
+    <button ng-click="getRemoteTracker('0ed43ef50b8d9496414b2d4fa07f87cdc733df6d')">Test Add</button>
+    <h4><a href="#/tracker/0ed43ef50b8d9496414b2d4fa07f87cdc733df6d/thing/da39a3ee5e6b4b0d3255bfef95601890afd80709">show thing</a></h4>
+  </div>
+
   </div>
 
   <div class="span8">

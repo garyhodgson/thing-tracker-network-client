@@ -1,4 +1,5 @@
 var Tracker = require('./tracker'),
+    RemoteTracker = require('./remote-tracker'),
     TrackerService = require('./tracker-service'),
     DHTService = require('./dht-service'),
     restServer = require('./rest-server'),
@@ -48,8 +49,19 @@ var TTNService = module.exports = new Class(EventEmitter, {
     }
 
     var dhtService = this.dhtService = new DHTService(node, restServer);
-    var tracker = this.tracker = new Tracker(config.dataPath+"/tracker/tracker.json");
-    var trackerService = this.trackerService = new TrackerService(tracker, restServer);
+
+    this.tracker;
+    this.trackers = {};
+    this.trackerService;
+
+    var rootTracker = this.roottracker = new Tracker("/tracker/tracker.json", {"dataPath":config.dataPath}, function(tracker){
+      that.tracker = tracker;
+      that.trackers[tracker.ttnNodeId] = tracker;
+      that.trackerService = new TrackerService(tracker, restServer);
+    });
+
+
+
 
     /* Wire up events */
 
@@ -124,16 +136,61 @@ var TTNService = module.exports = new Class(EventEmitter, {
     })
   },
 
+  addTracker: function(tracker){
+    if (tracker === undefined){
+      return
+    }
+    console.log(tracker.id);
+    this.trackers[tracker.id] = tracker;
+  },
+
+  getTracker: function(nodeId){
+    if (nodeId === undefined){
+      return
+    }
+    return this.trackers[nodeId];
+  },
+
+  getRemoteThing: function(trackerId, thingId, version, callback){
+    var that = this;
+    var _getThing = function(node){
+
+      var target = (version)? '/thing/'+thingId+'/'+version : '/thing/'+thingId;
+      restify.createJsonClient({url: 'http://' + node._address}).get(target, function(err, req, res, obj) {
+        if (err) throw err;
+        if (callback){
+          callback(obj);
+        }
+      });
+    }
+
+    if (this.node.ttn.remoteNodeCache[trackerId] !== undefined){
+      log.debug("found cached node");
+      var cachedNode = this.node.ttn.remoteNodeCache[trackerId];
+
+      _getThing(cachedNode);
+
+    } else {
+
+      this.node.findNode(trackerId, function(v){
+        if (v) {
+          that.node.ttn.remoteNodeCache[trackerId.toString()] = v;
+          _getThing(that.node.ttn.remoteNodeCache[trackerId.toString()], callback)
+        } else {
+          log.info("Node not found");
+        }
+      })
+    }
+  },
+
   getRemoteTracker: function(nodeId, callback){
     var that = this;
     var _success = function(tracker){
       if (callback){
         callback(tracker);
-      } else {
-        log.info(JSON.stringify(tracker , null, " "));
       }
     }
-    var _getTracker = function(node,callback){
+    var _getTracker = function(node){
 
       restify.createJsonClient({url: 'http://' + node._address}).get('/tracker', function(err, req, res, obj) {
         if (err) throw err;
@@ -150,7 +207,7 @@ var TTNService = module.exports = new Class(EventEmitter, {
         log.debug("found cached tracker");
         _success(cachedNode.tracker);
       } else {
-        _getTracker(cachedNode, callback)
+        _getTracker(cachedNode);
       }
 
     } else {
@@ -165,6 +222,5 @@ var TTNService = module.exports = new Class(EventEmitter, {
       })
     }
   }
-
 
 });

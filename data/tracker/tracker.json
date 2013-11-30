@@ -1,7 +1,6 @@
 {
 	"version":0,
 	"ttnNodeId": "966e38a96fa6bbd3c070ec50b5154f7647e48dad",
-	"ttnTrackerId": "e9d570eb0c8bbc2cc46c87c3df959a964be70dba",
 	"title":"Gary Hodgson TTN Tracker",
 	"description":"TTN Client Tracker for Gary Hodgson.",
 	"maintainers":[

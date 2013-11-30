@@ -4,8 +4,8 @@
     <h2>Tools</h2>
     <form name="toolsForm" id="tools">
       Node Id: <input type="text" ng-model="followNodeId" name="followNodeId" value="">
-        <input ng-click="followNode()" type="button" value="Follow" id="followNodeIdBtn">
-        <input ng-click="getRemoteTracker()" type="button" value="Get Tracker" id="getRemoteTrackerBtn">
+        <input ng-click="followNode(followNodeId)" type="button" value="Follow" id="followNodeIdBtn">
+        <input ng-click="getRemoteTracker(followNodeId)" type="button" value="Get Tracker" id="getRemoteTrackerBtn">
       <br>
       PUT: <input type="text" ng-model="putValue" name="putValue"><input ng-disabled="!putValue" type="button" value="PUT" ng-click="put()">
       <br>

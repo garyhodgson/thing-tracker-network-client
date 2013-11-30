@@ -4,3 +4,4 @@ data/trackerStore.db
 data/NStorePersistentStorage.db
 dist
 logs
+data2
