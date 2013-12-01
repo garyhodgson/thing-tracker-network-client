@@ -57,14 +57,12 @@ angular.module('TTNClientApp.controllers', [])
     $scope.getRemoteTracker = function(nodeId){
       nodeId = nodeId.trim();
       log.info("Retrieving tracker for node " + nodeId);
-
-      new RemoteTracker(nodeId, ttnService, function(tracker){
-        ttnService.addTracker(tracker);
+      ttnService.getRemoteTrackerAsync(nodeId,function(tracker){
+        console.log(tracker);
         $timeout(function(){
           $scope.trackers.push(tracker);
         });
       });
-
     };
 
   }])

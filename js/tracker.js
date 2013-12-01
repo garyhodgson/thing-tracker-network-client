@@ -12,6 +12,8 @@ var Tracker = module.exports = new Class({
     this._trackerJSON;
 
     this._dataPath = config.dataPath;
+    this._remote = config.remote;
+
     if (!fs.existsSync(this._dataPath+trackerLocation)){
       throw Error("Unable to read tracker from " + this._dataPath+trackerLocation)
     }
@@ -36,6 +38,27 @@ var Tracker = module.exports = new Class({
     if (thingJSON && thingJSON.latestVersion){
         return thingJSON.latestVersion
     }
+  },
+
+  getThingSync: function(id, version){
+
+    if (_.isUndefined(version)){
+      version = this.getThingLatestVersion(id);
+    }
+
+    if (_.isUndefined(version)){
+      console.error("Unable to determine latest version for Thing with id: "+ id);
+      return undefined;
+    }
+
+    var thingFilename = this._dataPath+'/thing/'+id+'/'+version+'/thing.json';
+    if (!fs.existsSync(thingFilename)){
+      console.error("Unable to find local thing with id: "+ id + " and version: " + version);
+      return undefined;
+    }
+
+    return JSON.parse(fs.readFileSync(thingFilename));
+
   },
 
   getThing: function(id, version, callback){
@@ -77,6 +100,7 @@ var Tracker = module.exports = new Class({
       that.getThing(thing.id, thing.latestVersion, function(t){
         if (! _.isUndefined(t)){
         callback({
+          trackerId: that.id,
           id: t.id,
           title: t.title,
           thumbnail: t.thumbnails?t.thumbnails[0]:undefined,
@@ -84,6 +108,7 @@ var Tracker = module.exports = new Class({
         });
       } else {
         callback({
+          trackerId: that.id,
           id: thing.id,
           title: thing.title,
           thumbnail: thing.thumbnails?thing.thumbnails[0]:undefined,

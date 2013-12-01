@@ -10,7 +10,8 @@ var DHTService = module.exports = new Class(EventEmitter, {
     connected: "connected",
     disconnected: "disconnected",
     joining: "joining",
-    joined: "joined"
+    joined: "joined",
+    remoteNodeRetrieved: "remoteNodeRetrieved"
   },
 
 
@@ -19,6 +20,7 @@ var DHTService = module.exports = new Class(EventEmitter, {
     var that = this;
 
     this._node = node
+    this._remoteNodeCache = {};
 
     if (server != undefined){
       this._server = server;
@@ -26,7 +28,7 @@ var DHTService = module.exports = new Class(EventEmitter, {
       this._server.get('/node', function(req, res, next) {
         var info = {
           "node-id": that._node.getID(),
-          "public-key": that._node.ttn.nodeKeys.getPublicKey()
+          "public-key": that._node.nodeKeys.getPublicKey()
         };
         res.send(info);
         return next();
@@ -34,7 +36,7 @@ var DHTService = module.exports = new Class(EventEmitter, {
 
       this._server.get('/node/public-key', function(req, res, next) {
         res.setHeader('content-type', 'text/plain');
-        res.send(that._node.ttn.nodeKeys.getPublicKey());
+        res.send(that._node.nodeKeys.getPublicKey());
         return next();
       });
 
@@ -58,7 +60,7 @@ var DHTService = module.exports = new Class(EventEmitter, {
   disconnect: function(callback){
     var that = this;
     this._node.disconnect(function(){
-      that.emit(that.events.disconnected)
+      that.emit(that.events.disconnected);
       if (callback) callback();
     }, this);
   },
@@ -69,6 +71,28 @@ var DHTService = module.exports = new Class(EventEmitter, {
     this._node.join(function() {
       that.emit(that.events.joined)
     });
-  }
+  },
+
+  getNodeAsync: function(nodeId, callback){
+    if (callback === undefined){
+      return;
+    }
+    var that = this;
+
+    if (this._remoteNodeCache[nodeId] !== undefined){
+      callback(this._remoteNodeCache[nodeId]);
+    } else {
+      this._node.findNode(nodeId, function(n){
+        if (n) {
+          that._remoteNodeCache[nodeId.toString()] = n;
+          that.emit(that.events.remoteNodeRetrieved, n);
+          callback(that._remoteNodeCache[nodeId]);
+        } else {
+          callback(undefined);
+        }
+      })
+    }
+
+  },
 
 });

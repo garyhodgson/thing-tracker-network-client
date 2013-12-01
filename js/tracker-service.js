@@ -1,6 +1,8 @@
 var Class = require('jsclass/src/core').Class,
     EventEmitter = require('events').EventEmitter,
-    restify = require('restify');
+    restify = require('restify'),
+    Tracker = require('./tracker'),
+    RemoteTracker = require('./remote-tracker');
 
 var TrackerService = module.exports = new Class(EventEmitter, {
 
@@ -27,7 +29,7 @@ var TrackerService = module.exports = new Class(EventEmitter, {
     });
 
     that._server.get('/thing/:id/:version', function(req, res, next) {
-      res.send(that._tracker.getThing(req.params.id,req.params.version)||404);
+      res.send(that._tracker.getThingSync(req.params.id,req.params.version)||404);
       return next();
     });
 
@@ -41,6 +43,6 @@ var TrackerService = module.exports = new Class(EventEmitter, {
     });
 
     process.nextTick(function() { that.emit(that.events.initialized) });
-  }
+  },
 
 })

@@ -3,7 +3,7 @@
   <div class="span4">
     <h3>Trackers</h3>
     <ul>
-      <li ng-repeat="tracker in trackers">
+      <li ng-repeat="tracker in trackers track by $index">
         <small>{{ tracker.getJSON().ttnNodeId }}</small>
         <h4>{{ tracker.getJSON().title }}</h4>
         <p>{{ tracker.getJSON().description }}</p>
@@ -31,7 +31,7 @@
       <li ng-repeat="thing in thingsSummary">
 
         <img class="pull-left thumbnail" width="50" ng-show="thing.thumbnail" ng-src="{{ resourcePath(thing.thumbnail) }}">
-        <h4><a href="#/thing/{{ thing.id }}">{{ thing.title }}</a></h4>
+        <h4><a href="#/tracker/{{ thing.trackerId }}/thing/{{ thing.id }}">{{ thing.title }}</a></h4>
         <hr>
       </li>
     </ul>

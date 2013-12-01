@@ -30,7 +30,7 @@ var TTNService = module.exports = new Class(EventEmitter, {
       nodeId = nodeKeys.getPublicKeyHash();
     }
 
-    var node = this.node = new TTNNode(nodeId, {
+    var dhtNode = this.dhtNode = new TTNNode(nodeId, {
         bootstraps : config.dht.bootstraps,
         persistence: 'memory',
         reactor : {
@@ -42,13 +42,12 @@ var TTNService = module.exports = new Class(EventEmitter, {
         }
       })
 
-    node.ttn = node.ttn||{ remoteNodeCache:{} };
 
     if (config.transient!="true"){
-      node.ttn.nodeKeys = nodeKeys;
+      dhtNode.nodeKeys = nodeKeys;
     }
 
-    var dhtService = this.dhtService = new DHTService(node, restServer);
+    var dhtService = this.dhtService = new DHTService(dhtNode, restServer);
 
     this.tracker;
     this.trackers = {};
@@ -56,12 +55,9 @@ var TTNService = module.exports = new Class(EventEmitter, {
 
     var rootTracker = this.roottracker = new Tracker("/tracker/tracker.json", {"dataPath":config.dataPath}, function(tracker){
       that.tracker = tracker;
-      that.trackers[tracker.ttnNodeId] = tracker;
+      that.trackers[tracker.id] = tracker;
       that.trackerService = new TrackerService(tracker, restServer);
     });
-
-
-
 
     /* Wire up events */
 
@@ -70,9 +66,8 @@ var TTNService = module.exports = new Class(EventEmitter, {
     });
 
     dhtService.on(dhtService.events.joined, function(){
-
       eventbus.emit(eventbus.events.dhtService.joined);
-      log.info('node joined the network, id = ' + node.getID() + ', address = ' + node.getAddress());
+      log.info('node joined the network, id = ' + dhtNode.getID() + ', address = ' + dhtNode.getAddress());
     })
     .on(dhtService.events.joining, function(){
       log.debug('node joining network...');
@@ -107,120 +102,58 @@ var TTNService = module.exports = new Class(EventEmitter, {
 
   stats: function(){
     this.emit(this.events.displayStats,{
-      "dhtConnected": (this.node.state == "connected"),
+      "dhtConnected": (this.dhtNode.state == "connected"),
       "restServerConnected": (restServer.initialized !== undefined && restServer.initialized),
-      "ttnNodeId": this.node.getID(),
-      "ttnNodeAddress":  this.node.getAddress(),
-      "peerCount" : this.node._routingTable.howManyPeers(),
-      "bucketCount" : this.node._routingTable.howManyKBuckets(),
-      "bootstraps" : this.node._bootstraps,
-      "peerList" : _.flatten(this.node._routingTable._kbuckets.map(function(b){return b.array.map(function(x){return x})}))
+      "ttnNodeId": this.dhtNode.getID(),
+      "ttnNodeAddress":  this.dhtNode.getAddress(),
+      "peerCount" : this.dhtNode._routingTable.howManyPeers(),
+      "bucketCount" : this.dhtNode._routingTable.howManyKBuckets(),
+      "bootstraps" : this.dhtNode._bootstraps,
+      "peerList" : _.flatten(this.dhtNode._routingTable._kbuckets.map(function(b){return b.array.map(function(x){return x})}))
     })
   },
 
-  findNode: function(nodeId){
-    var that = this;
-    this.node.findNode(nodeId, function(v){
-
-      if (that.node.ttn.remoteNodeCache[nodeId] !== undefined){
-        log.debug("cache hit for ", nodeId);
-        that.emit(that.events.foundNode, nodeId,that.node.ttn.remoteNodeCache[nodeId]);
-      } else {
-        if (v) {
-          that.node.ttn.remoteNodeCache[nodeId.toString()] = v;
-          that.emit(that.events.foundNode, nodeId, v);
-        } else {
-          that.emit(that.events.foundNode, nodeId, null);
-        }
-      }
-    })
+  findNodeAsync: function(nodeId, callback){
+    this.dhtService.getNodeAsync(nodeId, callback);
   },
 
   addTracker: function(tracker){
     if (tracker === undefined){
       return
     }
-    console.log(tracker.id);
+    log.info("added new tracker with id: "+ tracker.id);
     this.trackers[tracker.id] = tracker;
   },
 
   getTracker: function(nodeId){
     if (nodeId === undefined){
-      return
+      return undefined;
     }
     return this.trackers[nodeId];
   },
 
-  getRemoteThing: function(trackerId, thingId, version, callback){
+  getRemoteTrackerAsync: function(nodeId, callback){
     var that = this;
-    var _getThing = function(node){
 
-      var target = (version)? '/thing/'+thingId+'/'+version : '/thing/'+thingId;
-      restify.createJsonClient({url: 'http://' + node._address}).get(target, function(err, req, res, obj) {
-        if (err) throw err;
-        if (callback){
-          callback(obj);
-        }
-      });
-    }
-
-    if (this.node.ttn.remoteNodeCache[trackerId] !== undefined){
-      log.debug("found cached node");
-      var cachedNode = this.node.ttn.remoteNodeCache[trackerId];
-
-      _getThing(cachedNode);
-
-    } else {
-
-      this.node.findNode(trackerId, function(v){
-        if (v) {
-          that.node.ttn.remoteNodeCache[trackerId.toString()] = v;
-          _getThing(that.node.ttn.remoteNodeCache[trackerId.toString()], callback)
-        } else {
-          log.info("Node not found");
-        }
-      })
-    }
-  },
-
-  getRemoteTracker: function(nodeId, callback){
-    var that = this;
-    var _success = function(tracker){
-      if (callback){
+    new RemoteTracker(nodeId, this, function(tracker){
+      that.addTracker(tracker);
+      if (callback) {
         callback(tracker);
       }
+    });
+  },
+
+  getRemoteThingAsync: function(trackerId, thingId, version, callback){
+    var that = this;
+    var tracker = this.getTracker(trackerId);
+    if (tracker === undefined){
+      log.error("No local tracker with id: " + trackerId);
     }
-    var _getTracker = function(node){
-
-      restify.createJsonClient({url: 'http://' + node._address}).get('/tracker', function(err, req, res, obj) {
-        if (err) throw err;
-        node.tracker = obj;
-        _success(obj);
-      });
-    }
-
-    if (this.node.ttn.remoteNodeCache[nodeId] !== undefined){
-      log.debug("found cached node");
-      var cachedNode = this.node.ttn.remoteNodeCache[nodeId];
-
-      if (cachedNode.tracker !== undefined){
-        log.debug("found cached tracker");
-        _success(cachedNode.tracker);
-      } else {
-        _getTracker(cachedNode);
+    tracker.getThing(thingId, version, function(thing){
+      if (callback) {
+        callback(thing);
       }
-
-    } else {
-
-      this.node.findNode(nodeId, function(v){
-        if (v) {
-          that.node.ttn.remoteNodeCache[nodeId.toString()] = v;
-          _getTracker(that.node.ttn.remoteNodeCache[nodeId.toString()], callback)
-        } else {
-          log.info("Node not found");
-        }
-      })
-    }
-  }
+    });
+  },
 
 });
