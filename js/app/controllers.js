@@ -8,13 +8,14 @@ var logging = require('kadoh/lib/logging'),
 
 angular.module('TTNClientApp.controllers', [])
 
-  .controller('AppCtrl', ['$scope', '$timeout', '$sanitize', 'ttnService','argv', 'urlRegExp', function($scope, $timeout, $sanitize, ttnService, argv, urlRegExp) {
+.controller('AppCtrl', ['$scope', '$timeout', '$sanitize', 'ttnService','argv', 'urlRegExp', function($scope, $timeout, $sanitize, ttnService, argv, urlRegExp) {
     $scope.dataPath = ttnService.config.dataPath;
     $scope.messages = [];
     $scope.notifier = alertify;
     $scope.thingsSummary = [];
     $scope.trackers = [];
-    $scope.stats = {}
+    $scope.stats = {};
+    var trackerService = ttnService.trackerService;
 
     new AngularConsole(logging, argv.l||'info', $scope, $timeout, $sanitize);
 
@@ -32,8 +33,8 @@ angular.module('TTNClientApp.controllers', [])
 
     ttnService.on(ttnService.events.initialized, function(){
       log.debug("ttnService.events.initialized")
-      $scope.trackers.push(ttnService.tracker);
-      ttnService.tracker.mapThingsSummary(function(thingSummary){
+      $scope.trackers.push(trackerService.getRootTracker());
+      trackerService.getRootTracker().mapThingsSummary(function(thingSummary){
         $scope.thingsSummary.push(thingSummary);
       });
     });
@@ -56,9 +57,7 @@ angular.module('TTNClientApp.controllers', [])
 
     $scope.getRemoteTracker = function(nodeId){
       nodeId = nodeId.trim();
-      log.info("Retrieving tracker for node " + nodeId);
-      ttnService.getRemoteTrackerAsync(nodeId,function(tracker){
-        console.log(tracker);
+      trackerService.getRemoteTrackerAsync(nodeId, ttnService.dhtService, function(tracker){
         $timeout(function(){
           $scope.trackers.push(tracker);
         });
@@ -67,7 +66,9 @@ angular.module('TTNClientApp.controllers', [])
 
   }])
 
-  .controller('TrackerCtrl', ['$scope', 'ttnService', 'urlRegExp', function($scope, ttnService, urlRegExp) {
+.controller('TrackerCtrl', ['$scope', '$timeout', 'ttnService', 'urlRegExp', function($scope, $timeout, ttnService, urlRegExp) {
+
+    var trackerService = ttnService.trackerService;
 
     $scope.navigateToThingURL = function(url){
       gui.Shell.openExternal(url);
@@ -82,15 +83,16 @@ angular.module('TTNClientApp.controllers', [])
       }
 
       tracker.mapThingsSummary(function(thingSummary){
-        log.info("thingSummary" + thingSummary);
-        $scope.thingsSummary.push(thingSummary);
+        $timeout(function(){
+          $scope.thingsSummary.push(thingSummary);
+        });
       });
 
     };
 
   }])
 
-  .controller('ToolsCtrl', ['$scope', 'ttnService', function($scope, ttnService) {
+.controller('ToolsCtrl', ['$scope', 'ttnService', function($scope, ttnService) {
     $scope.put = function(){
       ttnService.node.put(null, toolsForm.putValue.value, null, function(v){
         log.info(v)
@@ -117,11 +119,12 @@ angular.module('TTNClientApp.controllers', [])
     };
   }])
 
-  .controller('ThingCtrl', ['$scope', '$location', '$routeParams', 'ttnService',  'urlRegExp', function($scope, $location, $routeParams, ttnService, urlRegExp) {
+.controller('ThingCtrl', ['$scope', '$location', '$routeParams', 'ttnService',  'urlRegExp', function($scope, $location, $routeParams, ttnService, urlRegExp) {
 
     var thingId = $routeParams.thingId;
     var trackerId = $routeParams.trackerId;
     var version = $routeParams.version;
+    var trackerService = ttnService.trackerService;
 
     if (!thingId){
       log.error("No Thing ID given.");
@@ -132,7 +135,7 @@ angular.module('TTNClientApp.controllers', [])
 
     if (trackerId){
 
-      var tracker = ttnService.getTracker(trackerId);
+      var tracker = trackerService.getTracker(trackerId);
 
       if (tracker !== undefined){
         tracker.getThing(thingId, version, function(thing){
@@ -143,7 +146,7 @@ angular.module('TTNClientApp.controllers', [])
       }
 
     } else {
-      ttnService.tracker.getThing(thingId, version, function(thing){
+      trackerService.getRootTracker().getThing(thingId, version, function(thing){
           $scope.thing = thing;
 
           if ($scope.thing == undefined){
