@@ -26,6 +26,8 @@ var argv  = require('optimist')
             .describe('d', 'path where data is stored.')
             .alias('t', 'transient')
             .describe('t', 'do not generate or persist keys')
+            .alias('i', 'interactive')
+            .describe('i', 'start nodejs repl')
             .argv;
 
 if (argv.h){
@@ -75,13 +77,14 @@ ttnService.on(ttnService.events.foundNode, function(nodeId, node){
   }
 });
 
+if (argv.i){
+  log.info("Starting REPL...")
 
-log.info("Starting REPL...")
-
-var repl = require('repl').start('> ').on('exit', function () {
-  ttnService.shutdown(function(){
-    process.exit();
+  var repl = require('repl').start('> ').on('exit', function () {
+    ttnService.shutdown(function(){
+      process.exit();
+    });
   });
-});
 
-repl.context.t = ttnService;
+  repl.context.t = ttnService;
+}
