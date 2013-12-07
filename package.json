@@ -35,6 +35,6 @@
     "fstream" : "0.1.25",
     "restify" : "2.6.0",
     "kadoh" : "git://github.com/garyhodgson/kadoh.git#ttn",
-    "unzip" : "0.1.9",
+    "unzip" : "0.1.9"
   }
 }
