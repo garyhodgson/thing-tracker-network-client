@@ -3,6 +3,8 @@ var Class = require('jsclass/src/core').Class,
     fs = require("fs"),
     log = require('kadoh/lib/logging').ns('Tracker'),
     path = require("path");
+var NodeKeys = require("./node-keys");
+
 
 var Tracker = module.exports = new Class({
 
@@ -12,7 +14,9 @@ var Tracker = module.exports = new Class({
     this._trackerJSON;
 
     this._dataPath = config.dataPath;
-    this._remote = config.remote;
+    this._nodeKeys = new NodeKeys(this._dataPath);
+    this.remote = false;
+    this.isRoot = true;
 
     if (!fs.existsSync(this._dataPath+trackerLocation)){
       throw Error("Unable to read tracker from " + this._dataPath+trackerLocation)
@@ -51,7 +55,8 @@ var Tracker = module.exports = new Class({
       return undefined;
     }
 
-    var thingFilename = this._dataPath+'/thing/'+id+'/'+version+'/thing.json';
+    var thingFilename = this._dataPath+'/tracker/'+this.id+'/thing/'+id+'/'+version+'/thing.json';
+
     if (!fs.existsSync(thingFilename)){
       console.error("Unable to find local thing with id: "+ id + " and version: " + version);
       return undefined;
@@ -76,7 +81,7 @@ var Tracker = module.exports = new Class({
       callback(undefined);
     }
 
-    var thingFilename = this._dataPath+'/thing/'+id+'/'+version+'/thing.json';
+    var thingFilename = this._dataPath+'/tracker/'+this.id+'/thing/'+id+'/'+version+'/thing.json';
     if (!fs.existsSync(thingFilename)){
       console.error("Unable to find local thing with id: "+ id + " and version: " + version);
       callback(undefined);
@@ -87,7 +92,9 @@ var Tracker = module.exports = new Class({
   },
 
   getJSON: function(){
-    return this._trackerJSON;
+    var payload = JSON.parse(JSON.stringify(this._trackerJSON));
+    payload.signature = this._nodeKeys.sign(JSON.stringify(payload));
+    return payload;
   },
 
   mapThingsSummary: function(callback){
@@ -97,26 +104,13 @@ var Tracker = module.exports = new Class({
     var that = this;
 
     _.each(this._trackerJSON.things, function(thing, index, list){
-      that.getThing(thing.id, thing.latestVersion, function(t){
-        if (! _.isUndefined(t)){
-        callback({
-          trackerId: that.id,
-          id: t.id,
-          title: t.title,
-          thumbnail: t.thumbnails?t.thumbnails[0]:undefined,
-          url: t.url
-        });
-      } else {
-        callback({
-          trackerId: that.id,
-          id: thing.id,
-          title: thing.title,
-          thumbnail: thing.thumbnails?thing.thumbnails[0]:undefined,
-          url: thing.url
-        });
-      }
+      callback({
+        trackerId: that.id,
+        id: thing.id,
+        title: thing.title,
+        summary: thing.summary,
+        thumbnailURL: thing.thumbnailURL||undefined
       });
-
     });
   },
 
@@ -125,6 +119,34 @@ var Tracker = module.exports = new Class({
       return;
     }
     return _.find(this._trackerJSON.trackers||[], function(it){ return it.id == id; })
+  },
+
+  getDownloadPath: function(thing){
+    if (!thing){
+      log.error("Attempt to get download path with an undefined thing reference.");
+      return undefined;
+    }
+    return fs.realpathSync(this._dataPath+"/tracker/"+this.id+"/thing/"+thing.id+"/"+thing.version+"/content/");
+  },
+
+  isCachedLocally: function(thing){
+    return fs.existsSync(this.getDownloadPath(thing));
+  },
+
+  downloadThing: function(thing, callback){
+    if (!thing){
+      log.error("Attempt to download content with an undefined thing reference.");
+      return;
+    }
+
+    var downloadPath = this.getDownloadPath(thing);
+
+    if (!fs.existsSync(downloadPath)){
+      log.error("Local tracker missing content at: " + downloadPath);
+      return;
+    }
+
+    callback(downloadPath);
   }
 
 });

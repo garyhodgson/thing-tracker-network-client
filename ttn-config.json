@@ -6,7 +6,8 @@
     "port": 9880
   },
   "RESTServer" : {
-    "port": 9880
+    "port": 9880,
+    "protocol": "https"
   },
 	"startup" : {
     "joinNetwork" : "true",

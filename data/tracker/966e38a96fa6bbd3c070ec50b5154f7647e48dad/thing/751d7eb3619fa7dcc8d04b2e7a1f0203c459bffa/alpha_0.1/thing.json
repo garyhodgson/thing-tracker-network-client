@@ -2,6 +2,7 @@
    "id":"751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa",
    "title":"Mechanical Movement #27",
    "url":"http://garyhodgson.github.com/githubiverse-tst",
+   "downloadURL": "/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa_alpha_0.1__Mechanical_Movement_#27.zip",
    "version": "alpha_0.1",
    "authors":[
       {
@@ -13,7 +14,7 @@
       "GPL3"
    ],
    "thumbnails":[
-      "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/test-jig.jpg"
+      "/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/test-jig.jpg"
    ],
    "description":"An implementation of movement #27 from \"507 Mechanical Movements\" by Henry T. Brown.\\n\\nThis is still a work in progress.",
    "created":"2012-09-03T14:50:20.000Z",
@@ -49,10 +50,10 @@
       {
          "partNumber":"1",
          "description":"Frame",
-         "url":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_frame.stl",
+         "url":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_frame.stl",
          "type":"generated",
          "mimetype":"application/sla",
-         "thumbnailURL":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/frame.png",
+         "thumbnailURL":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/frame.png",
          "xBOMMetadata":{
             "note":"This part has not yet been tested."
          }
@@ -60,23 +61,23 @@
       {
          "partNumber":"3",
          "description":"Wheel",
-         "url":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_wheel.stl",
+         "url":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_wheel.stl",
          "type":"generated",
          "mimetype":"application/sla",
-         "thumbnailURL":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/wheel.png"
+         "thumbnailURL":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/wheel.png"
       },
       {
          "partNumber":"2",
          "description":"Small Wheel",
-         "url":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_small_wheel.stl",
+         "url":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/stl/MechanicalMovement27_small_wheel.stl",
          "type":"generated",
          "mimetype":"application/sla",
-         "thumbnailURL":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/small_wheel.png"
+         "thumbnailURL":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/small_wheel.png"
       },
       {
          "partNumber":"4",
          "description":"OpenSCAD Source Code",
-         "url":"/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/src/MechanicalMovement27.scad",
+         "url":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/src/MechanicalMovement27.scad",
          "type":"source",
          "mimetype":"application/x-scad"
       },
@@ -110,9 +111,9 @@
          "step":1,
          "text":"Print out the Frame, Small Wheel and Large Wheel.",
          "images":[
-            "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/frame.png",
-            "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/wheel.png",
-            "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/small_wheel.png"
+            "/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/frame.png",
+            "/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/wheel.png",
+            "/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/small_wheel.png"
          ]
       },
       {
@@ -123,7 +124,7 @@
          "step":3,
          "text":"Connect the small and large wheel to the frame with an M4 and M5 bolt respectively.",
          "images":[
-            "/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/test-jig.jpg"
+            "/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/test-jig.jpg"
          ],
          "xInstructionMetadata":{
             "note":"So far the wheels have been printed and tested, but not yet the frame. This is shown in the attached image."

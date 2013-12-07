@@ -17,14 +17,17 @@
 			"versions" : [
 				"1.0.0"
 			],
+			"thumbnailURL":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd/1.0.0/content/img/assembly.png",
 			"latestVersion": "1.0.0"
 		},
 		{
 			"id":"751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa",
 			"title":"Mechanical Movement #27",
+			"summary":"An implementation of movement #27 from \"507 Mechanical Movements\" by Henry T. Brown.",
 			"versions" : [
 				"alpha_0.1"
 			],
+			"thumbnailURL":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/test-jig.jpg",
 			"latestVersion": "alpha_0.1"
 		}
 	]

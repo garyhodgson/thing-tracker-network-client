@@ -70,3 +70,7 @@ body {
 #message-log {
   width: 100%;
 }
+
+.info_bar .popover-inner {
+  font-size: 10px;
+}

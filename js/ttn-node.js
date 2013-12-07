@@ -31,7 +31,19 @@ var TTNNode = module.exports = kadoh.logic.KademliaNode.extend({
 	},
 
 	handleGET_TRACKER: function(rpc) {
-        rpc.resolve(this._tracker);
-      },
+    var tracker = {
+      "nodeId":this.getID(),
+      "restServer":this.getAddress(),
+      "restProtocol": this.trackerInfo.restProtocol
+    };
+
+    if (this.nodeKeys){
+      tracker.publicKey = this.nodeKeys.getPublicKey();
+      var signature = this.nodeKeys.sign(JSON.stringify(tracker));
+      tracker.signature = signature;
+    }
+
+    rpc.resolve(tracker);
+  },
 
 });

@@ -1,5 +1,5 @@
 node_modules
-data/pair.json
+data/keys.json
 data/trackerStore.db
 data/NStorePersistentStorage.db
 dist

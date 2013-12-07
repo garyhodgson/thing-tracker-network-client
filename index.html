@@ -15,6 +15,16 @@
   <div class="navbar">
     <div class="navbar-inner">
       <a class="brand" href="#">TTN Client</a>
+      <ul class="nav pull-right">
+        <li class="info_bar">
+          <a>
+            <div popover-placement="bottom" popover="{{statsTooltip}}" popover-trigger="mouseenter">
+              <span id="info_connected_label">DHT:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.dhtConnected||false]"></i></span>
+              <span id="info_joined_label">REST:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.restServerConnected||false]"></i></span>
+            </div>
+          </a>
+        </li>
+      </ul>
       <ul class="nav">
         <li><a href="#/">Home</a></li>
         <li><a href="#/settings">Settings</a></li>
@@ -25,7 +35,7 @@
   </div>
 
   <div class="container">
-    <ng-view ></ng-view>
+    <ng-view></ng-view>
   </div>
 
   <script src="js/vendor/alertify.min.js"></script>

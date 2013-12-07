@@ -3,6 +3,7 @@ var Class = require('jsclass/src/core').Class,
     keypair = require('keypair'),
     fs = require("fs"),
     Crypto = require("crypto"),
+    pem = require('pem'),
     log = require('kadoh/lib/logging').ns('NodeKeys');
 
 var NodeKeys = module.exports = new Class(EventEmitter, {
@@ -11,13 +12,13 @@ var NodeKeys = module.exports = new Class(EventEmitter, {
     initialized: "initialized"
   },
 
-  initialize: function(keysLocation) {
+  initialize: function(keysLocation, nodeId) {
     if (keysLocation === undefined) throw Error("No keys location given");
     if (!fs.existsSync(keysLocation)) throw new Error('Non-existant keys location');
     var that = this;
 
 
-    var pairFilename = keysLocation + "/pair.json"
+    var pairFilename = keysLocation + "/keys.json"
     var pair
 
     if (!fs.existsSync(pairFilename)){
@@ -28,7 +29,12 @@ var NodeKeys = module.exports = new Class(EventEmitter, {
 
       var shasum = Crypto.createHash('sha1');
       shasum.update(pair.public);
-      pair.public_hash = shasum.digest('hex');
+      pair.publicHash = shasum.digest('hex');
+
+      pem.createCertificate({serviceKey: pair.private}, function(err, result){
+        if (err) throw err;
+        pair.certificate = result.certificate;
+      });
 
       fs.writeFileSync(pairFilename, JSON.stringify(pair, null, 4));
 
@@ -38,9 +44,15 @@ var NodeKeys = module.exports = new Class(EventEmitter, {
 
     this._publicKey = pair.public;
     this._privateKey = pair.private;
-    this._publicKeyHash = pair.public_hash;
+    this._publicKeyHash = pair.publicHash;
+    this._certificate = pair.certificate;
+    this._signature = this.sign(JSON.stringify({
+      nodeId : this.getPublicKeyHash(),
+      publicKey : this.getPublicKey()
+    }));
 
     process.nextTick(function() { that.emit(that.events.initialized) });
+
   },
 
   getPublicKeyHash: function(){
@@ -49,6 +61,18 @@ var NodeKeys = module.exports = new Class(EventEmitter, {
 
   getPublicKey: function(){
     return this._publicKey;
+  },
+
+  getCertificate: function(){
+    return this._certificate;
+  },
+
+  getPrivateKey: function(){
+    return this._privateKey;
+  },
+
+  getSignature: function(){
+    return this._signature;
   },
 
   sign: function(message){

@@ -9,42 +9,75 @@ var TrackerService = module.exports = new Class(EventEmitter, {
 
   events: {
     initialized: "initialized",
-    trackerAdded: "trackerAdded"
+    trackerAdded: "trackerAdded",
+    trackerRemoved: "trackerRemoved"
   },
 
   initialize: function(tracker, server) {
-    if (tracker === undefined) throw Error("No tracker");
-    if (server === undefined) throw Error("No Server");
     var that = this;
 
     this.trackers = {}
-    this.addTracker(tracker);
-    this._rootTracker = tracker
-    this._server = server;
 
-    that._server.get('/tracker', function(req, res, next) {
-      res.send(that._rootTracker.getJSON());
-      return next();
-    });
+    if (tracker !== undefined){
+      this.addTracker(tracker);
+      this._rootTracker = tracker
 
-    that._server.get('/thing/:id', function(req, res, next) {
-      res.send(that._rootTracker.getThingSync(req.params.id)||404);
-      return next();
-    });
+      if (server !== undefined){
+        this._server = server;
 
-    that._server.get('/thing/:id/:version', function(req, res, next) {
-      res.send(that._rootTracker.getThingSync(req.params.id,req.params.version)||404);
-      return next();
-    });
+        this._server.get('/tracker', function(req, res, next) {
+          res.send(that._rootTracker.getJSON());
+          return next();
+        });
 
-    that._server.get(/\/thing\/?.*/, restify.serveStatic({
-      directory: './data'
-    }));
+        this._server.get('/tracker/:trackerId', function(req, res, next) {
+          if (that.trackers[req.params.trackerId] === undefined){
+            res.send(404);
+          } else {
+            res.send(that.trackers[req.params.trackerId].getJSON());
+          }
+          return next();
+        });
 
-    that._server.get('/tracker/subtracker/:id', function(req, res, next) {
-      res.send(that._rootTracker.getSubTracker(req.params.id)||404);
-      return next();
-    });
+        this._server.get('/thing/:id', function(req, res, next) {
+          res.send(that._rootTracker.getThingSync(req.params.id)||404);
+          return next();
+        });
+
+        this._server.get('/tracker/:trackerId/thing/:id', function(req, res, next) {
+          if (that.trackers[req.params.trackerId] === undefined){
+            res.send(404);
+          } else {
+            res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id)||404);
+          }
+          return next();
+        });
+
+        this._server.get('/thing/:id/:version', function(req, res, next) {
+          res.send(that._rootTracker.getThingSync(req.params.id,req.params.version)||404);
+          return next();
+        });
+
+        this._server.get('/tracker/:trackerId/thing/:id/:version', function(req, res, next) {
+          if (that.trackers[req.params.trackerId] === undefined){
+            res.send(404);
+          } else {
+            res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id,req.params.version)||404);
+          }
+          return next();
+        });
+
+        this._server.get('/tracker/subtracker/:id', function(req, res, next) {
+          res.send(that._rootTracker.getSubTracker(req.params.id)||404);
+          return next();
+        });
+
+        this._server.get(/\/tracker\/?.*/, restify.serveStatic({
+          directory: GLOBAL.dataPath
+        }));
+
+      }
+    }
 
     process.nextTick(function() { that.emit(that.events.initialized) });
   },
@@ -89,5 +122,18 @@ var TrackerService = module.exports = new Class(EventEmitter, {
         callback(thing);
       }
     });
+  },
+
+  removeRemoteTrackerAsync: function(trackerId, callback){
+    if (trackerId === this._rootTracker.id){
+      callback("cannot remove root tracker.");
+      return;
+    }
+    delete this.trackers[trackerId];
+
+    this.emit(this.events.trackerRemoved, trackerId);
+
+    callback();
+
   },
 })

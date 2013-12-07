@@ -1,5 +1,6 @@
 var Class = require('jsclass/src/core').Class,
     EventEmitter = require('events').EventEmitter,
+    Crypto = require("crypto"),
     log = require('kadoh/lib/logging').ns('DHTService');
 
 
@@ -27,8 +28,9 @@ var DHTService = module.exports = new Class(EventEmitter, {
 
       this._server.get('/node', function(req, res, next) {
         var info = {
-          "node-id": that._node.getID(),
-          "public-key": that._node.nodeKeys.getPublicKey()
+          nodeId: that._node.getID(),
+          publicKey: that._node.nodeKeys.getPublicKey(),
+          signature: that._node.nodeKeys.getSignature()
         };
         res.send(info);
         return next();
@@ -84,9 +86,32 @@ var DHTService = module.exports = new Class(EventEmitter, {
     } else {
       this._node.findNode(nodeId, function(n){
         if (n) {
-          that._remoteNodeCache[nodeId.toString()] = n;
-          that.emit(that.events.remoteNodeRetrieved, n);
-          callback(that._remoteNodeCache[nodeId]);
+
+          that._node.getTracker(n._address, n._id, function(trackerMetadata){
+
+            if (trackerMetadata == null){
+              log.warn("Unable to find trackerMetadata for node " + nodeId);
+            } else {
+              console.log(trackerMetadata);
+
+              var shasum = Crypto.createHash('sha1');
+              shasum.update(trackerMetadata.publicKey);
+              var remoteNodePublicKeyHash = shasum.digest('hex');
+
+              if (remoteNodePublicKeyHash !== nodeId){
+                log.error("public key hash of remote node does not match node id!")
+              }
+
+              n.trackerMetadata = trackerMetadata
+            }
+
+            that._remoteNodeCache[nodeId.toString()] = n;
+            that.emit(that.events.remoteNodeRetrieved, n);
+
+            callback(n);
+          })
+
+
         } else {
           callback(undefined);
         }

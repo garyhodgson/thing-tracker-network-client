@@ -2,11 +2,10 @@ var Tracker = require('./tracker'),
     RemoteTracker = require('./remote-tracker'),
     TrackerService = require('./tracker-service'),
     DHTService = require('./dht-service'),
-    restServer = require('./rest-server'),
+    RestServerFactory = require('./rest-server-factory'),
     TTNNode = require("./ttn-node"),
     NodeKeys = require("./node-keys"),
     _ = require('underscore'),
-    restify = require('restify'),
     Class = require('jsclass/src/core').Class,
     EventEmitter = require('events').EventEmitter,
     log = require('kadoh/lib/logging').ns('TTNService'),
@@ -23,6 +22,9 @@ var TTNService = module.exports = new Class(EventEmitter, {
   initialize: function(config) {
     this.config = config;
     var that = this;
+
+    //sigh
+    GLOBAL.dataPath = config.dataPath;
 
     var nodeId = null;
     if (config.transient!="true"){
@@ -42,20 +44,22 @@ var TTNService = module.exports = new Class(EventEmitter, {
         }
       })
 
+    dhtNode.trackerInfo = {
+      restProtocol : config.RESTServer.protocol||'http'
+    }
 
     if (config.transient!="true"){
       dhtNode.nodeKeys = nodeKeys;
     }
 
+    var restServer = this.restServer = (new RestServerFactory()).instance(nodeKeys, dhtNode.trackerInfo.restProtocol);
+
+
     var dhtService = this.dhtService = new DHTService(dhtNode, restServer);
 
-    //this.tracker;
-    /*this.trackers = {};*/
     this.trackerService;
 
-    new Tracker("/tracker/tracker.json", {"dataPath":config.dataPath}, function(tracker){
-      //that.tracker = tracker;
-      //that.trackers[tracker.id] = tracker;
+    new Tracker("/tracker/"+nodeId+"/tracker.json", {"dataPath":config.dataPath}, function(tracker){
       that.trackerService = new TrackerService(tracker, restServer);
     });
 
@@ -103,7 +107,7 @@ var TTNService = module.exports = new Class(EventEmitter, {
   stats: function(){
     this.emit(this.events.displayStats,{
       "dhtConnected": (this.dhtNode.state == "connected"),
-      "restServerConnected": (restServer.initialized !== undefined && restServer.initialized),
+      "restServerConnected": (this.restServer.initialized !== undefined && this.restServer.initialized),
       "ttnNodeId": this.dhtNode.getID(),
       "ttnNodeAddress":  this.dhtNode.getAddress(),
       "peerCount" : this.dhtNode._routingTable.howManyPeers(),

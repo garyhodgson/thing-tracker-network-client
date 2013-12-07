@@ -3,7 +3,11 @@ var Class = require('jsclass/src/core').Class,
     fs = require("fs"),
     restify = require('restify'),
     log = require('kadoh/lib/logging').ns('RemoteTracker'),
-    path = require("path");
+    path = require("path"),
+    http = require("http"),
+    unzip = require("unzip"),
+    Crypto = require("crypto"),
+    fstream = require("fstream");
 
 var RemoteTracker = module.exports = new Class({
 
@@ -12,6 +16,7 @@ var RemoteTracker = module.exports = new Class({
     this.dhtNode = dhtNode;
     this._trackerJSON;
     this.id = nodeId;
+    this.remote = true;
     this._thingCache = {};
 
     if (dhtNode.tracker !== undefined){
@@ -20,6 +25,32 @@ var RemoteTracker = module.exports = new Class({
       restify.createJsonClient({url: 'http://' + dhtNode._address})
         .get('/tracker', function(err, req, res, remoteTrackerJSON) {
           if (err) throw err;
+
+          // TODO - check if node is verified by user
+
+          if (dhtNode.trackerMetadata == undefined){
+            log.warn("Unable to verify tracker as dht node has no metadata.");
+            remoteTrackerJSON.verified = false;
+          } else if (remoteTrackerJSON.signature == undefined){
+            log.warn("Unable to verify tracker as no signature was found.");
+            remoteTrackerJSON.verified = false;
+          } else {
+            var verifier = Crypto.createVerify('RSA-SHA256');
+
+            //clone
+            var payload = JSON.parse(JSON.stringify(remoteTrackerJSON));
+            delete payload.signature
+            var signature = remoteTrackerJSON.signature
+            verifier.update(JSON.stringify(payload));
+            var publicKey = dhtNode.trackerMetadata.publicKey;
+
+            remoteTrackerJSON.verified = verifier.verify(publicKey, signature, 'hex');
+          }
+
+          if (!remoteTrackerJSON.verified){
+            log.warn("Remote tracker is not verified!");
+          }
+
           that._trackerJSON = remoteTrackerJSON;
           dhtNode.tracker = that;
           callback(that);
@@ -68,26 +99,13 @@ var RemoteTracker = module.exports = new Class({
     var that = this;
 
     _.each(this._trackerJSON.things, function(thing, index, list){
-      that.getThing(thing.id, thing.latestVersion, function(t){
-        if (_.isUndefined(t)){
-          callback({
-            trackerId: that.id,
-            id: thing.id,
-            title: thing.title,
-            thumbnail: thing.thumbnails?thing.thumbnails[0]:undefined,
-            url: thing.url
-          });
-        } else {
-          callback({
-           trackerId: that.id,
-            id: t.id,
-            title: t.title,
-            thumbnail: t.thumbnails?t.thumbnails[0]:undefined,
-            url: t.url
-          });
-        }
+      callback({
+        trackerId: that.id,
+        id: thing.id,
+        title: thing.title,
+        summary: thing.summary,
+        thumbnailURL: thing.thumbnailURL||undefined
       });
-
     });
   },
 
@@ -96,6 +114,79 @@ var RemoteTracker = module.exports = new Class({
       return;
     }
     return _.find(this._trackerJSON.trackers||[], function(it){ return it.id == id; })
+  },
+
+  isCachedLocally: function(thing){
+    return false;
+  },
+
+  _mkdir: function (path, root) {
+
+    var dirs = path.split('/'), dir = dirs.shift(), root = (root||'')+dir+'/';
+
+    try { fs.mkdirSync(root); }
+    catch (e) {
+        //dir wasn't made, something went wrong
+        if(!fs.statSync(root).isDirectory()) throw new Error(e);
+    }
+
+    return !dirs.length||this._mkdir(dirs.join('/'), root);
+  },
+
+  downloadThing: function(thing, callback){
+    if (!thing){
+      log.error("Attempt to download content with an undefined thing reference.");
+      return;
+    }
+
+    if (!thing.downloadURL){
+      log.error("Attempt to download content with an undefined thing downloadURL.");
+      return;
+    }
+
+    if (!GLOBAL.dataPath){
+      log.error("No data path set!");
+      return;
+    }
+
+    var url = 'http://' + this.dhtNode._address+thing.downloadURL;
+
+    var filename=path.basename(url);
+    var filenameExt = path.extname(filename);
+
+    if (filenameExt != ".zip"){
+      log.error("Only zip file downloadable content is handled at the moment. downloadURL points to a file with extension: " + filenameExt);
+      return;
+    }
+
+    var cacheZipLocation = fs.realpathSync(GLOBAL.dataPath) +"/cache/tracker/"+this.id+"/thing/"+thing.id + "/" + thing.version;
+    var cacheContentLocation = cacheZipLocation + "/content/";
+
+    if (!fs.existsSync(cacheContentLocation)){
+      this._mkdir(cacheContentLocation);
+    }
+
+    var file = fs.createWriteStream(cacheZipLocation+"/" + filename);
+
+    var outputDirStream = fstream.Writer(cacheContentLocation);
+
+    var request = http.get(url, function(response) {
+
+      response
+      .pipe(unzip.Parse())
+      .pipe(outputDirStream);
+
+      response
+      .pipe(file)
+
+      file.on('finish', function() {
+        file.close();
+
+        callback(file);
+
+      });
+
+    });
   }
 
 });

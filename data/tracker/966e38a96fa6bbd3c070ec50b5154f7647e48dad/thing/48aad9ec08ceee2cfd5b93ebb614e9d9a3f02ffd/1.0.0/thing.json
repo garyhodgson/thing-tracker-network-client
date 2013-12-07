@@ -1,6 +1,7 @@
 {
    "id":"48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd",
    "title":"strandbeest",
+   "downloadURL":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd/1.0.0/48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd_1.0.0__strandbeest.zip",
    "url":"http://garyhodgson.github.com/strandbeest",
    "version":"1.0.0",
    "authors":[
@@ -18,7 +19,7 @@
       "fun"
    ],
    "thumbnails":[
-      "/thing/48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd/1.0.0/content/img/assembly.png"
+      "/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/48aad9ec08ceee2cfd5b93ebb614e9d9a3f02ffd/1.0.0/content/img/assembly.png"
    ],
    "description":"Work in Progress!!\\n\\nMy take on implementing Theo Jansen's Strandbeest on a 3D printer.\\n\\nUsing the \"Theo Jansen Linkage 11 holy numbers\" together with the top j strut as a reference point use the ratio to determine lengths See: http://www.strandbeest.com/beests_leg.php and http://www.instructables.com/community/theo-jansen-mechanism-1/",
    "versions":["0.0.1", "1.0.0"]
