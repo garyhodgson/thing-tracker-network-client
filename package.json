@@ -29,6 +29,12 @@
     "underscore" : "1.5.2",
     "underscore.string" : "2.3.3",
     "multimeter" : "0.1.1",
-    "nconf" : "0.5.1"
+    "nconf" : "0.5.1",
+    "jsclass" : "4.0.4",
+    "pem" : "1.2.2",
+    "fstream" : "0.1.25",
+    "restify" : "2.6.0",
+    "kadoh" : "git://github.com/garyhodgson/kadoh.git#ttn",
+    "unzip" : "0.1.9",
   }
 }
