@@ -22,39 +22,46 @@ var RemoteTracker = module.exports = new Class({
     if (dhtNode.tracker !== undefined){
       callback(dhtNode.tracker);
     } else {
-      restify.createJsonClient({url: 'http://' + dhtNode._address})
-        .get('/tracker', function(err, req, res, remoteTrackerJSON) {
-          if (err) throw err;
+      var protocol = dhtNode.trackerMetadata.restProtocol||'http';
+      var client = restify.createJsonClient({url: protocol+'://' + dhtNode._address});
 
-          // TODO - check if node is verified by user
+      var cb = function(tracker){
+        callback(tracker);
+        client.close();
+      }
 
-          if (dhtNode.trackerMetadata == undefined){
-            log.warn("Unable to verify tracker as dht node has no metadata.");
-            remoteTrackerJSON.verified = false;
-          } else if (remoteTrackerJSON.signature == undefined){
-            log.warn("Unable to verify tracker as no signature was found.");
-            remoteTrackerJSON.verified = false;
-          } else {
-            var verifier = Crypto.createVerify('RSA-SHA256');
+      client.get('/tracker', function(err, req, res, remoteTrackerJSON) {
+        if (err) throw err;
 
-            //clone
-            var payload = JSON.parse(JSON.stringify(remoteTrackerJSON));
-            delete payload.signature
-            var signature = remoteTrackerJSON.signature
-            verifier.update(JSON.stringify(payload));
-            var publicKey = dhtNode.trackerMetadata.publicKey;
+        // TODO - check if node is verified by user
 
-            remoteTrackerJSON.verified = verifier.verify(publicKey, signature, 'hex');
-          }
+        if (dhtNode.trackerMetadata == undefined){
+          log.warn("Unable to verify tracker as dht node has no metadata.");
+          remoteTrackerJSON.verified = false;
+        } else if (remoteTrackerJSON.signature == undefined){
+          log.warn("Unable to verify tracker as no signature was found.");
+          remoteTrackerJSON.verified = false;
+        } else {
+          var verifier = Crypto.createVerify('RSA-SHA256');
 
-          if (!remoteTrackerJSON.verified){
-            log.warn("Remote tracker is not verified!");
-          }
+          //clone
+          var payload = JSON.parse(JSON.stringify(remoteTrackerJSON));
+          delete payload.signature
+          var signature = remoteTrackerJSON.signature
+          verifier.update(JSON.stringify(payload));
+          var publicKey = dhtNode.trackerMetadata.publicKey;
 
-          that._trackerJSON = remoteTrackerJSON;
-          dhtNode.tracker = that;
-          callback(that);
-        });
+          remoteTrackerJSON.verified = verifier.verify(publicKey, signature, 'hex');
+        }
+
+        if (!remoteTrackerJSON.verified){
+          log.warn("Remote tracker is not verified!");
+        }
+
+        that._trackerJSON = remoteTrackerJSON;
+        dhtNode.tracker = that;
+        cb(that);
+      });
     }
 
   },
@@ -67,14 +74,21 @@ var RemoteTracker = module.exports = new Class({
     var that = this;
 
     var target = (version)? '/thing/'+thingId+'/'+version : '/thing/'+thingId;
-    restify.createJsonClient({url: 'http://' + this.dhtNode._address})
-      .get(target, function(err, req, res, thingJSON) {
+    var protocol = this.dhtNode.trackerMetadata.restProtocol||'http';
+    var client = restify.createJsonClient({url: protocol+'://' + this.dhtNode._address});
+
+    var cb = function(thingJSON){
+      callback(thingJSON);
+      client.close();
+    };
+
+    client.get(target, function(err, req, res, thingJSON) {
         if (err) {
           log.error("Error retrieving remote thing. "+err);
           throw err;
         }
         that._thingCache[thingId+":"+version] = thingJSON;
-        callback(thingJSON);
+        cb(thingJSON);
       });
   },
 

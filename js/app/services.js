@@ -16,10 +16,12 @@ angular.module('TTNClientApp.services', [])
 
   .factory('ttnConfig', ['argv', function(argv){
     if (argv.c){
+      console.log("loading config from " + argv.c);
       nconf.file({ file: argv.c });
     }
 
     if (fs.existsSync(gui.App.dataPath + '/ttn-config.json')){
+      console.log("loading config from " + gui.App.dataPath + '/ttn-config.json');
       nconf.file({ file: gui.App.dataPath + '/ttn-config.json' })
     }
 
