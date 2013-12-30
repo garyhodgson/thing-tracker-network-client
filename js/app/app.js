@@ -8,7 +8,6 @@ var app = angular.module('TTNClientApp', [
     'ngRoute',
     'timeRelative',
     'ui.bootstrap',
-    'xeditable',
     'TTNClientApp.filters',
     'TTNClientApp.services',
     'TTNClientApp.controllers'
@@ -19,7 +18,7 @@ var app = angular.module('TTNClientApp', [
     global.eventbus = global.eventbus || new EventEmitter();
 
     $routeProvider.when('/', {
-      templateUrl: 'views/tracker.html',
+      templateUrl: 'views/main.html',
       controller: 'NodeCtrl'
     });
 
@@ -34,23 +33,19 @@ var app = angular.module('TTNClientApp', [
     });
 
     $routeProvider.when('/tracker/:trackerId/thing/:thingId', {
-      templateUrl: 'views/thing.html',
+      templateUrl: 'views/thing/view.html',
       controller: 'ThingCtrl'
     });
 
     $routeProvider.when('/thing/:thingId', {
-      templateUrl: 'views/thing.html',
+      templateUrl: 'views/thing/view.html',
       controller: 'ThingCtrl'
     });
 
 
     $routeProvider.when('/thing/:thingId/:version', {
-      templateUrl: 'views/thing.html',
+      templateUrl: 'views/thing/view.html',
       controller: 'ThingCtrl'
-    });
-
-    $routeProvider.when('/settings', {
-      templateUrl: 'views/settings.html'
     });
 
     $routeProvider.when('/tools', {
@@ -66,9 +61,7 @@ var app = angular.module('TTNClientApp', [
 
   })
 
-  .run(function(editableOptions){
-
-    editableOptions.theme = 'bs2';
+  .run(function(){
 
     var win = gui.Window.get();
     tray = new gui.Tray({ title: 'TTN-Client', icon: 'img/trayicon.png', tooltip: 'TTN-Client' });
@@ -94,6 +87,14 @@ var app = angular.module('TTNClientApp', [
       label: 'show',
       click: function() {
         win.show();
+        win.focus();
+      }
+    }));
+
+    menu.append(new gui.MenuItem({
+      label: 'hide',
+      click: function() {
+        win.hide();
       }
     }));
 
@@ -105,6 +106,7 @@ var app = angular.module('TTNClientApp', [
 
     tray.on('click', function() {
       win.show();
+      win.focus();
     });
 
   });

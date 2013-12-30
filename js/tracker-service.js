@@ -42,14 +42,17 @@ var TrackerService = module.exports = new Class(EventEmitter, {
           if (nodeId === undefined){
             return log.warn("Unable to initialize remote tracker, no nodeId.", tracker);
           }
+          new RemoteTracker(trackerId, undefined, function(tracker){
+            that.trackers[trackerId] = tracker;
+            that.emit(that.events.trackerAdded, tracker);
+          });
+
           that.dhtService.getNodeAsync(nodeId, function(dhtNode){
+            console.log("dhtNode = ",dhtNode);
             if (dhtNode === undefined){
-              return log.warn("Unable to find DHT Node " + nodeId);
+              log.warn("Unable to find DHT Node " + nodeId);
             }
-            new RemoteTracker(trackerId, dhtNode, function(tracker){
-              that.trackers[trackerId] = tracker;
-              that.emit(that.events.trackerAdded, tracker);
-            });
+            that.trackers[trackerId].setDhtNode(dhtNode);
           });
         });
       });

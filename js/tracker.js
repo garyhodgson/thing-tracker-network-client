@@ -1,4 +1,5 @@
 var Class = require('jsclass/src/core').Class,
+    eventbus = require('./event-bus'),
     _ = require('underscore'),
     fs = require("fs-extra"),
     log = require('kadoh/lib/logging').ns('Tracker'),

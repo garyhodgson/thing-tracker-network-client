@@ -66,6 +66,10 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
     ttnService.stats();
   });
 
+  eventbus.on(eventbus.events.tracker.trackerOnline, function(trackerId){
+    log.info("tracker online: ",trackerId);
+  });
+
   $scope.resourcePath = function(itemLocation){
     if (itemLocation == undefined){
       return undefined;

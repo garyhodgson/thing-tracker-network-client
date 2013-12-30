@@ -13,9 +13,13 @@
           <p>{{ tracker.getJSON().description }}</p>
           <p>{{ tracker.getJSON().things.length }} things.</p>
           <p>{{ tracker.getJSON().trackers.length || 0}} sub-trackers.</p>
-          <p ng-show="tracker.remote">Remote</p>
-          <p ng-show="{{tracker.remote && tracker.getJSON().verified}}">Verified</p>
-          <p ng-show="{{tracker.remote && !tracker.getJSON().verified}}">Not Verified!</p>
+          <div ng-show="tracker.remote">
+            <p>Remote</p>
+            <p ng-show="{{tracker.isOnline()}}">Online</p>
+            <p ng-hide="{{tracker.isOnline()}}">Offline</p>
+            <p ng-show="{{tracker.getJSON().verified}}">Verified</p>
+            <p ng-hide="{{tracker.getJSON().verified}}">Not Verified!</p>
+          </div>
           <h4 ng-hide="tracker.remote"><a href="#/app/tracker/{{id}}/thing/new">new thing</a></h4>
           <hr>
       </li>

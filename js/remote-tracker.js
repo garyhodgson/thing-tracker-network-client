@@ -1,4 +1,5 @@
 var Class = require('jsclass/src/core').Class,
+    eventbus = require('./event-bus'),
     _ = require('underscore'),
     fs = require("fs-extra"),
     restify = require('restify'),
@@ -11,13 +12,18 @@ var Class = require('jsclass/src/core').Class,
 
 var RemoteTracker = module.exports = new Class({
 
+  events: {
+    trackerOnline:   "trackerOnline",
+    trackerOffline: "trackerOffline"
+  },
+
   initialize: function(trackerId, dhtNode, callback) {
     var that = this;
     this.dhtNode = dhtNode;
     this._trackerJSON;
     this.id = trackerId;
     this.remote = true;
-    this.trackerLocation = GLOBAL.dataPath+ "/cache/tracker/" + trackerId + "/tracker.json"
+    this.trackerLocation = GLOBAL.dataPath+ "/cache/tracker/" + trackerId + "/tracker.json";
 
     if (fs.existsSync(this.trackerLocation)){
       this._trackerJSON = JSON.parse(fs.readFileSync(this.trackerLocation));
@@ -27,6 +33,9 @@ var RemoteTracker = module.exports = new Class({
         callback(that);
       }
     } else {
+      if (this.dhtNode === undefined){
+        return log.warn("Unable to initialize Remote Tracker as DHT Node is undefined. ID = " + trackerId);
+      }
       var protocol = dhtNode.ttnNodeInfo.restProtocol||'http';
       var client = restify.createJsonClient({url: protocol+'://' + dhtNode._address});
 
@@ -68,8 +77,15 @@ var RemoteTracker = module.exports = new Class({
         that._trackerJSON = remoteTrackerJSON;
         cb(that);
       });
-    }
+    };
 
+    process.nextTick(function() { eventbus.emit( (dhtNode === undefined) ? eventbus.events.tracker.trackerOffline : eventbus.events.tracker.trackerOnline, that.id ); });
+
+  },
+
+  setDhtNode: function(dhtNode){
+    this.dhtNode = dhtNode;
+    eventbus.emit((dhtNode === undefined) ? eventbus.events.tracker.trackerOffline : eventbus.events.tracker.trackerOnline, this.id );
   },
 
   persist: function(){
@@ -87,28 +103,51 @@ var RemoteTracker = module.exports = new Class({
     callback(_.findWhere(this._trackerJSON.things, {'id':id}));
   },
 
+  isOnline: function(){
+    return (this.dhtNode !== undefined);
+  },
+
   getThing: function(thingId, version, callback){
     var that = this;
-    var target = (version!==undefined)? '/tracker/'+this.id+'/thing/'+thingId+'/version/'+version : '/tracker/'+this.id+'/thing/'+thingId;
-    var protocol = (this.dhtNode.ttnNodeInfo&&this.dhtNode.ttnNodeInfo.restProtocol)||'http';
-    console.log(this.dhtNode);
-    console.log("this.dhtNode._address = ",this.dhtNode._address);
-    var restAddress = this.dhtNode._address.replace("0.0.0.0","127.0.0.1");
-    var client = restify.createJsonClient({url: protocol+'://' + restAddress});
+    version = version || this.getThingLatestVersion(thingId);
+    var thingURL = '/tracker/'+this.id+'/thing/'+thingId+'/version/'+version;
 
-    var cb = function(thingJSON){
-      callback(thingJSON);
-      client.close();
-    };
+    var cachedThingLocation = GLOBAL.dataPath + "/cache/"+thingURL + "/thing.json";
 
-    client.get(target, function(err, req, res, thingJSON) {
-        if (err) {
-          log.error("Error retrieving remote thing. "+err);
-          throw err;
+    if (fs.existsSync(cachedThingLocation)){
+      var thingJSON = JSON.parse(fs.readFileSync(cachedThingLocation));
+      if (callback !== undefined){
+          callback(thingJSON);
         }
-        console.log("thingJSON = ",thingJSON);
-        cb(thingJSON);
-      });
+    } else {
+      if (this.dhtNode === undefined){
+        return log.warn("Unable to get Thing as DHT Node is undefined. ID = " + thingId);
+      }
+      var protocol = (this.dhtNode.ttnNodeInfo&&this.dhtNode.ttnNodeInfo.restProtocol) || 'http';
+      var restAddress = (this.dhtNode.ttnNodeInfo&&this.dhtNode.ttnNodeInfo.restServer) || this.dhtNode._address.replace("0.0.0.0","127.0.0.1");
+      var client = restify.createJsonClient({url: protocol+'://' + restAddress});
+
+      var cb = function(thingJSON){
+        if (callback !== undefined){
+          callback(thingJSON);
+        }
+        client.close();
+      };
+
+      client.get(thingURL, function(err, req, res, thingJSON) {
+          if (err) {
+            log.error("Error retrieving remote thing. "+err);
+            throw err;
+          }
+          console.log("thingJSON = ",thingJSON);
+
+          fs.outputJson(cachedThingLocation, thingJSON, function(err){
+            if (err) return log.warn("Error caching remote thing, ", err);
+          });
+
+          cb(thingJSON);
+        });
+    }
   },
 
   getThingLatestVersion: function(id){
