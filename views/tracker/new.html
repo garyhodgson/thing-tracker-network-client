@@ -1,0 +1,18 @@
+<div class="row-fluid">
+
+  <h4>New Tracker</h4>
+  <form ng-submit="createTracker()">
+    Title: <input ng-model="newTracker.title" type="text">
+    <br>
+    Description: <input ng-model="newTracker.description" type="text">
+    <br>
+    Scope: <select
+       ng-model="newTracker.scope"
+       name="trackerScope"
+       required
+       ng-options="trackerScope for trackerScope in trackerScopeOptions">
+      </select>
+      <br>
+      <input type="submit" id="submit" value="Create" />
+  </form>
+</div>

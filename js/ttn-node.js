@@ -1,49 +1,43 @@
-var kadoh = require("kadoh"),
-		GetTrackerRPC = require('./rpc/gettracker.js');
+var Class = require('jsclass/src/core').Class,
+    _ = require('underscore'),
+    fs = require("fs"),
+    restify = require('restify'),
+    log = require('kadoh/lib/logging').ns('TTNNode');
 
-var TTNNode = module.exports = kadoh.logic.KademliaNode.extend({
+var TTNNode = module.exports = new Class({
 
-	initialize: function(id, options) {
-    	// extends KademliaNode
-    	this.supr(id, options);
-
-    	this._reactor.register({
-	      GET_TRACKER : GetTrackerRPC
-	    });
-
-	},
-
-	getTracker: function(address, id, callback, context){
-
-		context = context || this;
-        var peer = new Peer(address, id);
-        var getTrackerRPC = new GetTrackerRPC(peer);
-
-        getTrackerRPC.then(function(tracker) {
-          if (callback) callback.call(context, tracker);
-        }, function(a) {
-          if (callback) callback.call(context, null);
-        });
-
-        this._reactor.sendRPC(getTrackerRPC)
-
-        return this;
-	},
-
-	handleGET_TRACKER: function(rpc) {
-    var tracker = {
-      "nodeId":this.getID(),
-      "restServer":this.getAddress(),
-      "restProtocol": this.trackerInfo.restProtocol
-    };
-
-    if (this.nodeKeys){
-      tracker.publicKey = this.nodeKeys.getPublicKey();
-      var signature = this.nodeKeys.sign(JSON.stringify(tracker));
-      tracker.signature = signature;
-    }
-
-    rpc.resolve(tracker);
+  events: {
+    initialized: "initialized"
   },
+
+  initialize: function(nodeId, dhtService, callback) {
+    var that = this;
+
+    dhtService.getNodeAsync(nodeId, function(dhtNode){
+
+      that.dhtNode = dhtNode;
+
+      var protocol = dhtNode.ttnNodeInfo.restProtocol||'http';
+      var address = dhtNode.ttnNodeInfo.restServer||dhtNode._address;
+      var client = restify.createJsonClient({url: protocol+'://' + address});
+
+      var cb = function(){
+        if (callback){
+          callback(that);
+        }
+        process.nextTick(function() { that.emit(that.events.initialized) });
+        client.close();
+      }
+
+      client.get('/', function(err, req, res, remoteNodeJSON) {
+        if (err) throw err;
+
+        that.nodeJSON = remoteNodeJSON;
+        cb();
+      });
+
+    });
+  },
+
 
 });

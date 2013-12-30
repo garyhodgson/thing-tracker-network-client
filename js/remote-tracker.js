@@ -1,6 +1,6 @@
 var Class = require('jsclass/src/core').Class,
     _ = require('underscore'),
-    fs = require("fs"),
+    fs = require("fs-extra"),
     restify = require('restify'),
     log = require('kadoh/lib/logging').ns('RemoteTracker'),
     path = require("path"),
@@ -11,31 +11,38 @@ var Class = require('jsclass/src/core').Class,
 
 var RemoteTracker = module.exports = new Class({
 
-  initialize: function(nodeId, dhtNode, callback) {
+  initialize: function(trackerId, dhtNode, callback) {
     var that = this;
     this.dhtNode = dhtNode;
     this._trackerJSON;
-    this.id = nodeId;
+    this.id = trackerId;
     this.remote = true;
-    this._thingCache = {};
+    this.trackerLocation = GLOBAL.dataPath+ "/cache/tracker/" + trackerId + "/tracker.json"
 
-    if (dhtNode.tracker !== undefined){
-      callback(dhtNode.tracker);
+    if (fs.existsSync(this.trackerLocation)){
+      this._trackerJSON = JSON.parse(fs.readFileSync(this.trackerLocation));
+      this.id = this._trackerJSON.id;
+
+      if (callback !== undefined){
+        callback(that);
+      }
     } else {
-      var protocol = dhtNode.trackerMetadata.restProtocol||'http';
+      var protocol = dhtNode.ttnNodeInfo.restProtocol||'http';
       var client = restify.createJsonClient({url: protocol+'://' + dhtNode._address});
 
       var cb = function(tracker){
-        callback(tracker);
+        if (callback !== undefined){
+          callback(tracker);
+        }
         client.close();
       }
 
-      client.get('/tracker', function(err, req, res, remoteTrackerJSON) {
+      client.get('/tracker/'+trackerId, function(err, req, res, remoteTrackerJSON) {
         if (err) throw err;
 
         // TODO - check if node is verified by user
 
-        if (dhtNode.trackerMetadata == undefined){
+        if (dhtNode.ttnNodeInfo == undefined){
           log.warn("Unable to verify tracker as dht node has no metadata.");
           remoteTrackerJSON.verified = false;
         } else if (remoteTrackerJSON.signature == undefined){
@@ -49,7 +56,7 @@ var RemoteTracker = module.exports = new Class({
           delete payload.signature
           var signature = remoteTrackerJSON.signature
           verifier.update(JSON.stringify(payload));
-          var publicKey = dhtNode.trackerMetadata.publicKey;
+          var publicKey = dhtNode.ttnNodeInfo.publicKey;
 
           remoteTrackerJSON.verified = verifier.verify(publicKey, signature, 'hex');
         }
@@ -59,12 +66,22 @@ var RemoteTracker = module.exports = new Class({
         }
 
         that._trackerJSON = remoteTrackerJSON;
-        dhtNode.tracker = that;
         cb(that);
       });
     }
 
   },
+
+  persist: function(){
+
+    fs.outputJson(this.trackerLocation, this._trackerJSON, function(err){
+      if (err){
+        return log.error(err);
+      }
+      log.info("Tracker Cached");
+    });
+  },
+
 
   getThingSummary: function(id, callback){
     callback(_.findWhere(this._trackerJSON.things, {'id':id}));
@@ -72,10 +89,12 @@ var RemoteTracker = module.exports = new Class({
 
   getThing: function(thingId, version, callback){
     var that = this;
-
-    var target = (version)? '/thing/'+thingId+'/'+version : '/thing/'+thingId;
-    var protocol = this.dhtNode.trackerMetadata.restProtocol||'http';
-    var client = restify.createJsonClient({url: protocol+'://' + this.dhtNode._address});
+    var target = (version!==undefined)? '/tracker/'+this.id+'/thing/'+thingId+'/version/'+version : '/tracker/'+this.id+'/thing/'+thingId;
+    var protocol = (this.dhtNode.ttnNodeInfo&&this.dhtNode.ttnNodeInfo.restProtocol)||'http';
+    console.log(this.dhtNode);
+    console.log("this.dhtNode._address = ",this.dhtNode._address);
+    var restAddress = this.dhtNode._address.replace("0.0.0.0","127.0.0.1");
+    var client = restify.createJsonClient({url: protocol+'://' + restAddress});
 
     var cb = function(thingJSON){
       callback(thingJSON);
@@ -87,7 +106,7 @@ var RemoteTracker = module.exports = new Class({
           log.error("Error retrieving remote thing. "+err);
           throw err;
         }
-        that._thingCache[thingId+":"+version] = thingJSON;
+        console.log("thingJSON = ",thingJSON);
         cb(thingJSON);
       });
   },
@@ -130,21 +149,8 @@ var RemoteTracker = module.exports = new Class({
     return _.find(this._trackerJSON.trackers||[], function(it){ return it.id == id; })
   },
 
-  isCachedLocally: function(thing){
+  isThingCachedLocally: function(thing){
     return false;
-  },
-
-  _mkdir: function (path, root) {
-
-    var dirs = path.split('/'), dir = dirs.shift(), root = (root||'')+dir+'/';
-
-    try { fs.mkdirSync(root); }
-    catch (e) {
-        //dir wasn't made, something went wrong
-        if(!fs.statSync(root).isDirectory()) throw new Error(e);
-    }
-
-    return !dirs.length||this._mkdir(dirs.join('/'), root);
   },
 
   downloadThing: function(thing, callback){
@@ -177,7 +183,7 @@ var RemoteTracker = module.exports = new Class({
     var cacheContentLocation = cacheZipLocation + "/content/";
 
     if (!fs.existsSync(cacheContentLocation)){
-      this._mkdir(cacheContentLocation);
+      fs.mkdirsSync(cacheContentLocation);
     }
 
     var file = fs.createWriteStream(cacheZipLocation+"/" + filename);

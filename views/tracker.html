@@ -1,31 +1,33 @@
 <div class="row-fluid">
 
   <div class="span4" ng-controller="NodeCtrl">
-    <h2>Node</h2>
+
     <h4>Trackers</h4>
     <ul>
+
       <li ng-repeat="(id, tracker) in trackers track by id">
-        <small>{{ id }}</small>
-        <h4>{{ tracker.getJSON().title }}</h4>
-        <p>{{ tracker.getJSON().description }}</p>
-        <p>{{ tracker.getJSON().things.length }} things.</p>
-        <p>{{ tracker.getJSON().trackers.length || 0}} sub-trackers.</p>
-        <p ng-show="tracker.remote">Remote</p>
-        <p ng-show="{{tracker.remote && tracker.getJSON().verified}}">Verified</p>
-        <p ng-show="{{tracker.remote && !tracker.getJSON().verified}}">Not Verified!</p>
-        <button ng-click="showThings(tracker)">Show Things</button>
-        <span ng-hide="tracker.isRoot">
-          <button>Save</button>
-          <button>Follow</button>
-          <button ng-click="removeNode(id)">Remove</button>
-        </span>
-        <hr>
+        <a ng-click="showThings(tracker)" href="#">
+          <h4>{{ tracker.getJSON().title }}</h4>
+        </a>
+          <small>{{ id }}</small>
+          <p>{{ tracker.getJSON().description }}</p>
+          <p>{{ tracker.getJSON().things.length }} things.</p>
+          <p>{{ tracker.getJSON().trackers.length || 0}} sub-trackers.</p>
+          <p ng-show="tracker.remote">Remote</p>
+          <p ng-show="{{tracker.remote && tracker.getJSON().verified}}">Verified</p>
+          <p ng-show="{{tracker.remote && !tracker.getJSON().verified}}">Not Verified!</p>
+          <h4 ng-hide="tracker.remote"><a href="#/app/tracker/{{id}}/thing/new">new thing</a></h4>
+          <hr>
       </li>
     </ul>
 
+    <h4>testing...</h4>
     <div>
-    <button ng-click="getRemoteTracker('0ed43ef50b8d9496414b2d4fa07f87cdc733df6d')">Test Add</button>
+    <button ng-click="getRemoteTracker('0ed43ef50b8d9496414b2d4fa07f87cdc733df6d','0ed43ef50b8d9496414b2d4fa07f87cdc733df6d')">Test Add</button>
     <h4><a href="#/tracker/0ed43ef50b8d9496414b2d4fa07f87cdc733df6d/thing/da39a3ee5e6b4b0d3255bfef95601890afd80709">show thing</a></h4>
+
+    <h4><a href="#/app/tracker/new">new tracker</a></h4>
+
 
     <form name="trackersForm">
       <input type="text" ng-model="nodeId" name="nodeId" value="">
@@ -35,7 +37,7 @@
 
   </div>
 
-  <div class="span8" ng-controller="TrackerCtrl">
+  <div class="span8">
     <h3>Things</h3>
     <ul class="thing-list">
       <li ng-repeat="thing in thingsSummary track by $index">

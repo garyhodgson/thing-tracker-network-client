@@ -24,18 +24,6 @@ var RestServerFactory = module.exports = new Class(EventEmitter, {
     restServer.use(restify.acceptParser(restServer.acceptable));
     restServer.use(restify.jsonp());
 
-    restServer.get('/', function(req,res,next){
-      res.send([{
-        uri:"/node",
-        description:"Information about this node"
-      },
-      {
-        uri:"/tracker",
-        description:"Thing tracker"
-      }]);
-      return next();
-    });
-
     return restServer;
   },
 

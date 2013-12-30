@@ -3,80 +3,103 @@ var Class = require('jsclass/src/core').Class,
     restify = require('restify'),
     Tracker = require('./tracker'),
     log = require('kadoh/lib/logging').ns('TrackerService'),
+    _ = require("underscore"),
     RemoteTracker = require('./remote-tracker');
 
 var TrackerService = module.exports = new Class(EventEmitter, {
 
   events: {
-    initialized: "initialized",
-    trackerAdded: "trackerAdded",
+    initialized:    "initialized",
+    trackerAdded:   "trackerAdded",
     trackerRemoved: "trackerRemoved"
   },
 
-  initialize: function(tracker, server) {
+  initialize: function(nodeConfig, restServer, dhtService) {
     var that = this;
 
-    this.trackers = {}
+    this.trackers = {};
+    this.dhtService = dhtService;
 
-    if (tracker !== undefined){
-      this.addTracker(tracker);
-      this._rootTracker = tracker
+    if (nodeConfig !== undefined){
+      _.each(nodeConfig.trackers, function(tracker, index, list){
+        var trackerId = tracker.id;
+        if (trackerId !== undefined){
+          new Tracker(nodeConfig.dataPath+"/tracker/"+trackerId+"/tracker.json", function(tracker){
+            that.trackers[trackerId] = tracker;
+            that.emit(that.events.trackerAdded, tracker);
+          });
+        }
+      });
 
-      if (server !== undefined){
-        this._server = server;
+      dhtService.on(dhtService.events.joined, function(){
 
-        this._server.get('/tracker', function(req, res, next) {
-          res.send(that._rootTracker.getJSON());
-          return next();
-        });
-
-        this._server.get('/tracker/:trackerId', function(req, res, next) {
-          if (that.trackers[req.params.trackerId] === undefined){
-            res.send(404);
-          } else {
-            res.send(that.trackers[req.params.trackerId].getJSON());
+        _.each(nodeConfig.remoteTrackers, function(tracker, index, list){
+          var trackerId = tracker.id;
+          var nodeId = tracker.ttnNodeId;
+          if (trackerId === undefined){
+            return log.warn("Unable to initialize remote tracker, no trackerId.", tracker);
           }
-          return next();
-        });
-
-        this._server.get('/thing/:id', function(req, res, next) {
-          res.send(that._rootTracker.getThingSync(req.params.id)||404);
-          return next();
-        });
-
-        this._server.get('/tracker/:trackerId/thing/:id', function(req, res, next) {
-          if (that.trackers[req.params.trackerId] === undefined){
-            res.send(404);
-          } else {
-            res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id)||404);
+          if (nodeId === undefined){
+            return log.warn("Unable to initialize remote tracker, no nodeId.", tracker);
           }
-          return next();
+          that.dhtService.getNodeAsync(nodeId, function(dhtNode){
+            if (dhtNode === undefined){
+              return log.warn("Unable to find DHT Node " + nodeId);
+            }
+            new RemoteTracker(trackerId, dhtNode, function(tracker){
+              that.trackers[trackerId] = tracker;
+              that.emit(that.events.trackerAdded, tracker);
+            });
+          });
         });
+      });
 
-        this._server.get('/thing/:id/:version', function(req, res, next) {
-          res.send(that._rootTracker.getThingSync(req.params.id,req.params.version)||404);
-          return next();
-        });
+    }
 
-        this._server.get('/tracker/:trackerId/thing/:id/:version', function(req, res, next) {
-          if (that.trackers[req.params.trackerId] === undefined){
-            res.send(404);
-          } else {
-            res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id,req.params.version)||404);
-          }
-          return next();
-        });
+    if (restServer !== undefined){
+      this._restServer = restServer;
 
-        this._server.get('/tracker/subtracker/:id', function(req, res, next) {
-          res.send(that._rootTracker.getSubTracker(req.params.id)||404);
-          return next();
-        });
+      this._restServer.get('/tracker/:trackerId', function(req, res, next) {
+        if (that.trackers[req.params.trackerId] === undefined){
+          res.send(404);
+        } else {
+          res.send(that.trackers[req.params.trackerId].getJSON());
+        }
+        return next();
+      });
 
-        this._server.get(/\/tracker\/?.*/, restify.serveStatic({
-          directory: GLOBAL.dataPath
-        }));
+      this._restServer.get('/tracker/:trackerId/thing/:id', function(req, res, next) {
+        if (that.trackers[req.params.trackerId] === undefined){
+          res.send(404);
+        } else {
+          res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id)||404);
+        }
+        return next();
+      });
 
-      }
+      this._restServer.get('/tracker/:trackerId/thing/:id/version/:version', function(req, res, next) {
+        if (that.trackers[req.params.trackerId] === undefined){
+          res.send(404);
+        } else {
+          res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id,req.params.version)||404);
+        }
+        return next();
+      });
+
+      this._restServer.get('/tracker/:trackerId/subtracker/:id', function(req, res, next) {
+        if (that.trackers[req.params.trackerId] === undefined){
+          res.send(404);
+        } else {
+          res.send(that.trackers[req.params.trackerId].getSubTracker(req.params.id)||404);
+        }
+
+        return next();
+      });
+
+      this._restServer.get(/\/tracker\/?.*/, restify.serveStatic({
+        directory: GLOBAL.dataPath
+      }));
+
     }
 
     process.nextTick(function() { that.emit(that.events.initialized) });
@@ -94,16 +117,13 @@ var TrackerService = module.exports = new Class(EventEmitter, {
     return this.trackers[id];
   },
 
-  getRootTracker: function(){
-    return this._rootTracker;
-  },
-
-  getRemoteTrackerAsync: function(nodeId, dhtService, callback){
+  getRemoteTrackerAsync: function(nodeId, trackerId, dhtService, callback){
     var that = this;
 
     dhtService.getNodeAsync(nodeId, function(dhtNode){
-      new RemoteTracker(nodeId, dhtNode, function(tracker){
+      new RemoteTracker(trackerId, dhtNode, function(tracker){
         that.addTracker(tracker);
+        tracker.persist();
         if (callback) {
           callback(tracker);
         }
@@ -125,10 +145,8 @@ var TrackerService = module.exports = new Class(EventEmitter, {
   },
 
   removeRemoteTrackerAsync: function(trackerId, callback){
-    if (trackerId === this._rootTracker.id){
-      callback("cannot remove root tracker.");
-      return;
-    }
+
+    //TODO - careful! Should we have a check to ensure that local trackers cannot be deleted?
     delete this.trackers[trackerId];
 
     this.emit(this.events.trackerRemoved, trackerId);

@@ -10,7 +10,18 @@
       PUT: <input type="text" ng-model="putValue" name="putValue"><input ng-disabled="!putValue" type="button" value="PUT" ng-click="put()">
       <br>
       GET: <input type="text" ng-model="getValue" name="getValue"><input ng-disabled="!getValue" type="button" value="GET" ng-click="get()">
+
+      <br>
+      Node Address: <input type="text" ng-model="followNodeAddress" name="followNodeAddress" value="">
+        <input ng-click="followNodeFromAddress(followNodeAddress)" type="button" value="Follow" id="followNodeAddressBtn">
     </form>
+
+    <h3>Nodes</h3>
+    <ul>
+      <li ng-repeat="node in nodes track by id">
+        {{ node._id }} - {{ node._address }}
+      </li>
+    </ul>
   </div>
 
   <div class="span6">

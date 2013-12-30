@@ -3,12 +3,15 @@ var Tracker = require('./tracker'),
     TrackerService = require('./tracker-service'),
     DHTService = require('./dht-service'),
     RestServerFactory = require('./rest-server-factory'),
-    TTNNode = require("./ttn-node"),
+    restify = require('restify'),
+    DHTNode = require("./dht-node"),
     NodeKeys = require("./node-keys"),
     _ = require('underscore'),
+    fs = require('fs'),
     Class = require('jsclass/src/core').Class,
     EventEmitter = require('events').EventEmitter,
     log = require('kadoh/lib/logging').ns('TTNService'),
+    Crypto = require("crypto"),
     eventbus = require('./event-bus');
 
 var TTNService = module.exports = new Class(EventEmitter, {
@@ -27,12 +30,17 @@ var TTNService = module.exports = new Class(EventEmitter, {
     GLOBAL.dataPath = config.dataPath;
 
     var nodeId = null;
-    if (config.transient!="true"){
+
+    if (config.transient!=="true"){
       var nodeKeys = this.nodeKeys = new NodeKeys(config.dataPath);
       nodeId = nodeKeys.getPublicKeyHash();
+    } else {
+      nodeId = "transient";
     }
 
-    var dhtNode = this.dhtNode = new TTNNode(nodeId, {
+    this.nodeId = nodeId;
+
+    var dhtNode = this.dhtNode = new DHTNode(nodeId, {
         bootstraps : config.dht.bootstraps,
         persistence: 'memory',
         reactor : {
@@ -48,24 +56,42 @@ var TTNService = module.exports = new Class(EventEmitter, {
       restProtocol : config.RESTServer.protocol||'http'
     }
 
-    if (config.transient!="true"){
+    if (config.transient!=="true"){
       dhtNode.nodeKeys = nodeKeys;
     }
 
     var restServer = this.restServer = (new RestServerFactory()).instance(nodeKeys, dhtNode.trackerInfo.restProtocol);
 
-
     var dhtService = this.dhtService = new DHTService(dhtNode, restServer);
 
-    this.trackerService;
+    var nodeConfigPath = this.nodeConfigPath = config.dataPath + "/" + nodeId+ ".json";
+    if (!fs.existsSync(nodeConfigPath)){
+      fs.writeFileSync(nodeConfigPath, JSON.stringify({
+        "nodeId": nodeId,
+        "trackers": [],
+        "dataPath": config.dataPath
+      }));
+    }
+    this.nodeConfig =  JSON.parse(fs.readFileSync(nodeConfigPath));
 
-    new Tracker("/tracker/"+nodeId+"/tracker.json", {"dataPath":config.dataPath}, function(tracker){
-      that.trackerService = new TrackerService(tracker, restServer);
+    var trackerService = this.trackerService = new TrackerService(this.nodeConfig, restServer, dhtService);
+
+    this.restServer.get('/', function(req,res,next){
+      var info = {
+        "nodeId": nodeId,
+        "nodeAddress": dhtNode._address.replace('0.0.0.0','127.0.0.1'),
+        "trackers": that.nodeConfig.trackers||[]
+      }
+      if (dhtNode.nodeKeys){
+        info.publicKey =  dhtNode.nodeKeys.getPublicKey();
+      }
+      res.send(info);
+      return next();
     });
 
     /* Wire up events */
 
-    restServer.on('initialized', function(name, url){
+    this.restServer.on('initialized', function(name, url){
       log.debug(name + ' listening at ' + url);
     });
 
@@ -100,6 +126,65 @@ var TTNService = module.exports = new Class(EventEmitter, {
     process.nextTick(function() { that.emit(that.events.initialized) });
   },
 
+  getLocalTrackers: function(){
+    return this.trackerService.trackers;
+  },
+
+  getLocalTracker: function(id){
+    return this.trackerService.trackers[id];
+  },
+
+  createNewTracker: function(newTracker){
+    var that = this;
+    if (newTracker === undefined){
+      log.error("Attempt to create new tracker with undefined values.");
+      return;
+    }
+
+    var shasum = Crypto.createHash('sha1');
+    var key = this.getNodeId() + Crypto.randomBytes(256).toString('hex');
+    shasum.update(key);
+    var newId = shasum.digest('hex');
+
+    //TODO - check if tracker already exists, gen another id
+
+    if (!fs.existsSync(GLOBAL.dataPath + "/tracker/")){
+      fs.mkdirSync(GLOBAL.dataPath + "/tracker/");
+    }
+
+    var newTrackerPath = GLOBAL.dataPath + "/tracker/" + newId;
+    fs.mkdirSync(newTrackerPath);
+
+    var newTrackerConfigPath = newTrackerPath + "/tracker.json"
+
+    var trackerJSON = {
+      "version": 0,
+      "id": newId,
+      "ttnNodeId": this.getNodeId(),
+      "title": newTracker.title,
+      "description": newTracker.description,
+      "things": []
+    };
+
+    var payload = JSON.parse(JSON.stringify(trackerJSON));
+    payload.signature = this.nodeKeys.sign(JSON.stringify(payload));
+
+    fs.writeFileSync(newTrackerConfigPath, JSON.stringify(payload, null, 4));
+
+    this.nodeConfig.trackers.push(newId);
+
+    fs.writeFileSync(this.nodeConfigPath, JSON.stringify(this.nodeConfig, null, 4));
+
+    var tracker = new Tracker(GLOBAL.dataPath+ "/tracker/" + newId+"/tracker.json", function(t){
+      that.trackerService.addTracker(t);
+    })
+
+  },
+
+  getNodeId: function(){
+    return this.nodeId;
+  },
+
   shutdown:  function(cb){
     this.dhtService.disconnect(cb);
   },
@@ -119,6 +204,35 @@ var TTNService = module.exports = new Class(EventEmitter, {
 
   findNodeAsync: function(nodeId, callback){
     this.dhtService.getNodeAsync(nodeId, callback);
+  },
+
+  findNodeByAddressAsync: function(nodeRESTAddress, callback){
+    var that = this;
+    var client = restify.createJsonClient({url: nodeRESTAddress});
+
+    var cb = function(nodeJSON){
+
+      var nodeAddress = nodeJSON.address.replace("0.0.0.0", "127.0.0.1");
+
+      that.dhtService.pingNodeAsync(nodeJSON.nodeId, nodeAddress, function(success){
+        if (!success){
+          log.error("Unable to ping remote node with address: " + nodeAddress);
+          return;
+        }
+        that.dhtService.getNodeAsync(nodeJSON.nodeId, callback);
+
+      });
+      client.close();
+    };
+
+    client.get("/node", function(err, req, res, nodeJSON) {
+        if (err) {
+          log.error("Error retrieving remote node. "+err);
+          throw err;
+        }
+        cb(nodeJSON);
+      });
+
   },
 
 });

@@ -30,7 +30,8 @@ var DHTService = module.exports = new Class(EventEmitter, {
         var info = {
           nodeId: that._node.getID(),
           publicKey: that._node.nodeKeys.getPublicKey(),
-          signature: that._node.nodeKeys.getSignature()
+          signature: that._node.nodeKeys.getSignature(),
+          address: that._node._address
         };
         res.send(info);
         return next();
@@ -52,6 +53,10 @@ var DHTService = module.exports = new Class(EventEmitter, {
     process.nextTick(function() { that.emit(that.events.initialized) });
   },
 
+  getDhtNode: function(){
+    return this._node;
+  },
+
   connect: function(){
     var that = this;
     this._node.connect(function() {
@@ -69,10 +74,14 @@ var DHTService = module.exports = new Class(EventEmitter, {
 
   join: function(){
     var that = this;
-    that.emit(that.events.joining)
+    that.emit(that.events.joining);
     this._node.join(function() {
-      that.emit(that.events.joined)
+      that.emit(that.events.joined);
     });
+  },
+
+  pingNodeAsync: function(nodeId, nodeAddress, callback){
+    this._node.ping(nodeAddress, nodeId, callback, this);
   },
 
   getNodeAsync: function(nodeId, callback){
@@ -87,29 +96,28 @@ var DHTService = module.exports = new Class(EventEmitter, {
       this._node.findNode(nodeId, function(n){
         if (n) {
 
-          that._node.getTracker(n._address, n._id, function(trackerMetadata){
+          that._node.getTTNNodeInfo(n._address, n._id, function(ttnNodeInfo){
 
-            if (trackerMetadata == null){
-              log.warn("Unable to find trackerMetadata for node " + nodeId);
+            if (ttnNodeInfo == null){
+              log.warn("Unable to find ttnNodeInfo for node " + nodeId);
             } else {
-              console.log(trackerMetadata);
 
               var shasum = Crypto.createHash('sha1');
-              shasum.update(trackerMetadata.publicKey);
+              shasum.update(ttnNodeInfo.publicKey);
               var remoteNodePublicKeyHash = shasum.digest('hex');
 
               if (remoteNodePublicKeyHash !== nodeId){
                 log.error("public key hash of remote node does not match node id!")
               }
 
-              n.trackerMetadata = trackerMetadata
+              n.ttnNodeInfo = ttnNodeInfo
             }
 
             that._remoteNodeCache[nodeId.toString()] = n;
             that.emit(that.events.remoteNodeRetrieved, n);
 
             callback(n);
-          })
+          });
 
 
         } else {

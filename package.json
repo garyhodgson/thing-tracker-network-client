@@ -2,15 +2,19 @@
   "name": "ttn-client",
   "description": "A p2p client for the Thing Tracker Network.",
   "version": "0.0.1",
-  "maintainers":[{
-    "name": "Gary Hodgson",
-    "email": "contact@garyhodgson.com",
-    "web": "http://garyhodgson.com"
-  }],
-  "licenses": [{
-    "type": "MIT",
-    "url": "http://opensource.org/licenses/MIT"
-  }],
+  "maintainers": [
+    {
+      "name": "Gary Hodgson",
+      "email": "contact@garyhodgson.com",
+      "web": "http://garyhodgson.com"
+    }
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://opensource.org/licenses/MIT"
+    }
+  ],
   "main": "index.html",
   "window": {
     "icon": "img/app.png",
@@ -23,18 +27,19 @@
   },
   "dependencies": {
     "colors": "0.6.2",
-    "keypair" : "1.0.0",
-    "nstore" : "0.5.2",
-    "optimist" : "0.6.0",
-    "underscore" : "1.5.2",
-    "underscore.string" : "2.3.3",
-    "multimeter" : "0.1.1",
-    "nconf" : "0.5.1",
-    "jsclass" : "4.0.4",
-    "pem" : "1.2.2",
-    "fstream" : "0.1.25",
-    "restify" : "2.6.0",
-    "kadoh" : "git://github.com/garyhodgson/kadoh.git#ttn",
-    "unzip" : "0.1.9"
+    "keypair": "1.0.0",
+    "nstore": "0.5.2",
+    "optimist": "0.6.0",
+    "underscore": "1.5.2",
+    "underscore.string": "2.3.3",
+    "multimeter": "0.1.1",
+    "nconf": "0.5.1",
+    "jsclass": "4.0.4",
+    "pem": "1.2.2",
+    "fstream": "0.1.25",
+    "restify": "2.6.0",
+    "kadoh": "git://github.com/garyhodgson/kadoh.git#ttn",
+    "unzip": "0.1.9",
+    "fs-extra": "~0.8.1"
   }
 }

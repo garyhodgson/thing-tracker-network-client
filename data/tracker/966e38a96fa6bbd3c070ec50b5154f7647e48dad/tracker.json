@@ -21,6 +21,15 @@
 			"latestVersion": "1.0.0"
 		},
 		{
+			"id":"7df261f7ecf13a54fe26880c09221c31872300b0",
+			"title":"9-Pin D-Sub Housing",
+			"versions" : [
+				"1.0"
+			],
+			"thumbnailURL":"http://thingiverse-production.s3.amazonaws.com/renders/c9/28/70/36/3e/20110731-DSC04539_preview_featured.jpg",
+			"latestVersion": "1.0"
+		},
+		{
 			"id":"751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa",
 			"title":"Mechanical Movement #27",
 			"summary":"An implementation of movement #27 from \"507 Mechanical Movements\" by Henry T. Brown.",
@@ -30,5 +39,6 @@
 			"thumbnailURL":"/tracker/966e38a96fa6bbd3c070ec50b5154f7647e48dad/thing/751d7eb3619fa7dcc8d04b2e7a1f0203c459bffa/alpha_0.1/content/img/test-jig.jpg",
 			"latestVersion": "alpha_0.1"
 		}
-	]
+	],
+	"signature": "4c97c31a7174db122087e26ec44f54ce1f9d9978641f30075dca2c799f61a110b312d5d5d14758e3a7d30c13a589430710dffc86db224a159791bb4916a3a9a48b2eb2aa12500752503489c8c66f59c73d954173f041119e95945ef61e1dafb04209920d032672a6e8e07c871131b9132d622228fb4936eed0aa76623a6f090b7e2e46f4982f91454c5551b24ef6be1acc310f6368751a499c2cf24382a2f9a97d74325f461907d19c8a8c6925e895c680a0b6a687bd1d056bfbe42036e791669df2c3e2b8a68e41b8c896005edba173859334ed09bc12b938e78ba55f5b61278bde8d17efc7ace27b2063180fe898c6b02986e8ef53e8de635f8e62953abb4f"
 }

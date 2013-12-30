@@ -74,3 +74,15 @@ body {
 .info_bar .popover-inner {
   font-size: 10px;
 }
+
+#bomTable #unit {
+  width: 30px;
+}
+
+#bomTable #quantity {
+  width: 30px;
+}
+
+#bomTable #partNumber {
+  width: 30px;
+}

@@ -8,6 +8,7 @@ var app = angular.module('TTNClientApp', [
     'ngRoute',
     'timeRelative',
     'ui.bootstrap',
+    'xeditable',
     'TTNClientApp.filters',
     'TTNClientApp.services',
     'TTNClientApp.controllers'
@@ -19,7 +20,17 @@ var app = angular.module('TTNClientApp', [
 
     $routeProvider.when('/', {
       templateUrl: 'views/tracker.html',
-      controller: 'TrackerCtrl'
+      controller: 'NodeCtrl'
+    });
+
+    $routeProvider.when('/app/tracker/new', {
+      templateUrl: 'views/tracker/new.html',
+      controller: 'NewTrackerCtrl'
+    });
+
+    $routeProvider.when('/app/tracker/:trackerId/thing/new', {
+      templateUrl: 'views/thing/new.html',
+      controller: 'NewThingCtrl'
     });
 
     $routeProvider.when('/tracker/:trackerId/thing/:thingId', {
@@ -31,6 +42,7 @@ var app = angular.module('TTNClientApp', [
       templateUrl: 'views/thing.html',
       controller: 'ThingCtrl'
     });
+
 
     $routeProvider.when('/thing/:thingId/:version', {
       templateUrl: 'views/thing.html',
@@ -54,7 +66,9 @@ var app = angular.module('TTNClientApp', [
 
   })
 
-  .run(function(){
+  .run(function(editableOptions){
+
+    editableOptions.theme = 'bs2';
 
     var win = gui.Window.get();
     tray = new gui.Tray({ title: 'TTN-Client', icon: 'img/trayicon.png', tooltip: 'TTN-Client' });
@@ -73,6 +87,13 @@ var app = angular.module('TTNClientApp', [
               gui.App.closeAllWindows();
             }
         });
+      }
+    }));
+
+    menu.append(new gui.MenuItem({
+      label: 'show',
+      click: function() {
+        win.show();
       }
     }));
 
