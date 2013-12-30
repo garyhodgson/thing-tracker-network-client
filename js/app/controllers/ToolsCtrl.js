@@ -1,22 +1,22 @@
 
-angular.module('TTNClientApp.controllers').controller('ToolsCtrl', ['$scope', 'ttnService', function($scope, ttnService) {
+angular.module('TTNClientApp.controllers').controller('ToolsCtrl', ['$scope', 'ttnNode', function($scope, ttnNode) {
 
   $scope.nodes = [];
 
   $scope.put = function(){
-    ttnService.dhtNode.put(null, toolsForm.putValue.value, null, function(v){
+    ttnNode.dhtNode.put(null, toolsForm.putValue.value, null, function(v){
       log.info(v)
     })
   };
 
   $scope.get = function(){
-    ttnService.dhtNode.get(toolsForm.getValue.value, function(v){
+    ttnNode.dhtNode.get(toolsForm.getValue.value, function(v){
       log.info(v)
     })
   };
 
   $scope.refreshInfo = function(){
-    ttnService.stats();
+    ttnNode.stats();
   };
 
   $scope.followNode = function(nodeId){
@@ -25,11 +25,11 @@ angular.module('TTNClientApp.controllers').controller('ToolsCtrl', ['$scope', 't
       log.warn("No Node ID given");
       return;
     }
-    ttnService.findNodeAsync(nodeId, function(node){
+    ttnNode.findNodeAsync(nodeId, function(node){
 
       $scope.nodes.push(node);
 
-      ttnService.dhtService._node.getTracker(node._address, node._id, function(tracker){
+      ttnNode.dhtService._node.getTracker(node._address, node._id, function(tracker){
         console.log(tracker);
       })
 
@@ -42,9 +42,9 @@ angular.module('TTNClientApp.controllers').controller('ToolsCtrl', ['$scope', 't
       log.warn("No Node Address given");
       return;
     }
-    ttnService.findNodeByAddressAsync(nodeAddress, function(node){
+    ttnNode.findNodeByAddressAsync(nodeAddress, function(node){
       $scope.nodes.push(node);
-      ttnService.dhtService._node.getTracker(node._address, node._id, function(tracker){
+      ttnNode.dhtService._node.getTracker(node._address, node._id, function(tracker){
         console.log(tracker);
       })
     });

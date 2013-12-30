@@ -1,6 +1,6 @@
 
 
-angular.module('TTNClientApp.controllers').controller('NewTrackerCtrl', ['$scope', '$location', '$routeParams', 'ttnService', function($scope, $location, $routeParams, ttnService) {
+angular.module('TTNClientApp.controllers').controller('NewTrackerCtrl', ['$scope', '$location', '$routeParams', 'ttnNode', function($scope, $location, $routeParams, ttnNode) {
 
   $scope.trackerScopeOptions = [
     'Private','Public'
@@ -13,6 +13,6 @@ angular.module('TTNClientApp.controllers').controller('NewTrackerCtrl', ['$scope
   };
 
   $scope.createTracker = function(){
-    ttnService.createNewTracker(this.newTracker);
+    ttnNode.createNewTracker(this.newTracker);
   }
 }])

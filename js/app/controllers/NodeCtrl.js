@@ -1,16 +1,18 @@
-angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$timeout', 'ttnService', function($scope, $timeout, ttnService) {
+var RemoteTTNNode = require('./js/remote-ttn-node');
 
-  var trackerService = ttnService.trackerService;
+angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$timeout', 'ttnNode', function($scope, $timeout, ttnNode) {
+
+  var trackerService = ttnNode.trackerService;
 
   $scope.getNode = function(nodeId){
     nodeId = nodeId.trim();
 
-    new TTNNode(nodeId, ttnService.dhtService, function(ttnNode){
+    new RemoteTTNNode(nodeId, ttnNode.dhtService, function(ttnNode){
       console.log("ttnNode = ",ttnNode);
     });
 
 
-    /*trackerService.getRemoteTrackersAsync(nodeId, ttnService.dhtService, function(trackers){
+    /*trackerService.getRemoteTrackersAsync(nodeId, ttnNode.dhtService, function(trackers){
       $timeout(function(){
         _.each(trackers, function(tracker){
           $scope.trackers[tracker.id] = tracker;

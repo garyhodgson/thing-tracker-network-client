@@ -1,12 +1,12 @@
 var log = require('kadoh/lib/logging').ns('ThingCtrl');
 
 
-angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$location', '$routeParams', 'ttnService',  'urlRegExp', function($scope, $location, $routeParams, ttnService, urlRegExp) {
+angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$location', '$routeParams', 'ttnNode',  'urlRegExp', function($scope, $location, $routeParams, ttnNode, urlRegExp) {
 
     var thingId = $routeParams.thingId;
     var trackerId = $routeParams.trackerId;
     var version = $routeParams.version;
-    var trackerService = ttnService.trackerService;
+    var trackerService = ttnNode.trackerService;
 
     if (thingId === undefined){
       log.error("No Thing ID given.");
@@ -18,7 +18,7 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
       $location.path( "/" );
     };
 
-    $scope.dataPath = ttnService.config.dataPath;
+    $scope.dataPath = ttnNode.config.dataPath;
     $scope.tracker = trackerService.getTracker(trackerId);
 
     if ($scope.tracker === undefined){

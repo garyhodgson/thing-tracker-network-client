@@ -4,6 +4,7 @@ var Class = require('jsclass/src/core').Class,
     fs = require("fs-extra"),
     log = require('kadoh/lib/logging').ns('Tracker'),
     async = require("async"),
+    admzip = require('adm-zip'),
     path = require("path");
 
 var Tracker = module.exports = new Class({
@@ -48,13 +49,18 @@ var Tracker = module.exports = new Class({
   createThing: function(newThing, files, thumbnailPaths){
 
     var that = this;
-    var thingAddress = "/tracker/" + this.id + "/" + "/thing/" + newThing.id + "/version/" + newThing.version;
+    var thingAddress = "/tracker/" + this.id + "/thing/" + newThing.id + "/version/" + newThing.version;
     var thingLocation = GLOBAL.dataPath + thingAddress;
     var thingContentLocation = thingLocation + "/content/";
     var thingThumbnailsLocation = thingLocation + "/thumbnail/";
     var thingThumbnailURL = thingAddress+ "/thumbnail/";
+    var thingZipURL = thingAddress + "/" + newThing.id + "_" + newThing.version +".zip";
+    var thingZipLocation = GLOBAL.dataPath + thingZipURL;
 
+    newThing.downloadURL = thingZipURL;
     newThing.thumbnails = _.map(thumbnailPaths, function(thumbnailPath){ return thingThumbnailURL + path.basename(thumbnailPath); });
+
+
     fs.outputJson(thingLocation+"/thing.json", newThing, function(err){
       if (err){
         return log.error(err);
@@ -87,7 +93,15 @@ var Tracker = module.exports = new Class({
           onErrorCallback(null);
         });
       }, function(err){
-        if (err) return log.error("File copy error: " + err);
+        if (err) {
+          return log.error("File copy error: " + err);
+        }
+
+        var zip = new admzip();
+        var realPath = fs.realpathSync(thingContentLocation);
+        zip.addLocalFolder(realPath);
+        zip.writeZip(thingZipLocation);
+
       });
     });
 

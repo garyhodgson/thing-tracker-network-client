@@ -204,8 +204,11 @@ var RemoteTracker = module.exports = new Class({
     }
 
     if (!GLOBAL.dataPath){
-      log.error("No data path set!");
-      return;
+      return log.error("No data path set!");
+    }
+
+    if (this.dhtNode === undefined){
+     return log.error("Tracker has no DHT node.");
     }
 
     var url = 'http://' + this.dhtNode._address+thing.downloadURL;

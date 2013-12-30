@@ -1,13 +1,13 @@
 var dir = require('node-dir');
 
-angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope', '$location', '$routeParams', 'ttnService',  'urlRegExp', function($scope, $location, $routeParams, ttnService, urlRegExp) {
+angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope', '$location', '$routeParams', 'ttnNode',  'urlRegExp', function($scope, $location, $routeParams, ttnNode, urlRegExp) {
 
   var shasum = Crypto.createHash('sha1');
   var key = Crypto.randomBytes(256).toString('hex');
   shasum.update(key);
   var newId = shasum.digest('hex');
 
-  $scope.tracker = ttnService.getLocalTracker($routeParams.trackerId);
+  $scope.tracker = ttnNode.getLocalTracker($routeParams.trackerId);
 
   if ($scope.tracker === undefined){
     log.error("No tracker selected");

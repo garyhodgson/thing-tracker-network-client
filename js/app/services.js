@@ -1,6 +1,6 @@
 var fs = require('fs'),
     gui = require('nw.gui'),
-    TTNService = require('./js/ttn-service'),
+    TTNNode = require('./js/ttn-node'),
     nconf = require('nconf');
 
 
@@ -38,6 +38,6 @@ angular.module('TTNClientApp.services', [])
     return nconf.load();
   }])
 
-  .factory('ttnService', ['ttnConfig', function(ttnConfig){
-    return new TTNService(ttnConfig);
+  .factory('ttnNode', ['ttnConfig', function(ttnConfig){
+    return new TTNNode(ttnConfig);
   }])
