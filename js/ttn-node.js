@@ -1,6 +1,5 @@
 var Tracker = require('./tracker'),
     RemoteTracker = require('./remote-tracker'),
-    TrackerService = require('./tracker-service'),
     DHTService = require('./dht-service'),
     RestServerFactory = require('./rest-server-factory'),
     restify = require('restify'),
@@ -19,12 +18,14 @@ var TTNNode = module.exports = new Class(EventEmitter, {
   events: {
     initialized: 'initialized',
     displayStats: 'displayStats',
-    foundNode: 'foundNode'
+    foundNode: 'foundNode',
+    trackerAdded:   "trackerAdded",
+    trackerRemoved: "trackerRemoved"
   },
 
   initialize: function(config) {
-    this.config = config;
     var that = this;
+    this.config = config;
 
     //sigh
     GLOBAL.dataPath = config.dataPath;
@@ -74,7 +75,16 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     }
     this.nodeConfig =  JSON.parse(fs.readFileSync(nodeConfigPath));
 
-    var trackerService = this.trackerService = new TrackerService(this.nodeConfig, restServer, dhtService);
+    this.trackers = {};
+    _.each(this.nodeConfig.trackers, function(tracker, index, list){
+      var trackerId = tracker.id;
+      if (trackerId !== undefined){
+        new Tracker(that.nodeConfig.dataPath+"/tracker/"+trackerId+"/tracker.json", function(tracker){
+          that.trackers[trackerId] = tracker;
+          process.nextTick(function() { that.emit(that.events.trackerAdded, tracker); });
+        });
+      }
+    });
 
     this.restServer.get('/', function(req,res,next){
       var info = {
@@ -89,6 +99,47 @@ var TTNNode = module.exports = new Class(EventEmitter, {
       return next();
     });
 
+    this.restServer.get('/tracker/:trackerId', function(req, res, next) {
+      if (that.trackers[req.params.trackerId] === undefined){
+        res.send(404);
+      } else {
+        res.send(that.trackers[req.params.trackerId].getJSON());
+      }
+      return next();
+    });
+
+    this.restServer.get('/tracker/:trackerId/thing/:id', function(req, res, next) {
+      if (that.trackers[req.params.trackerId] === undefined){
+        res.send(404);
+      } else {
+        res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id)||404);
+      }
+      return next();
+    });
+
+    this.restServer.get('/tracker/:trackerId/thing/:id/version/:version', function(req, res, next) {
+      if (that.trackers[req.params.trackerId] === undefined){
+        res.send(404);
+      } else {
+        res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id,req.params.version)||404);
+      }
+      return next();
+    });
+
+    this.restServer.get('/tracker/:trackerId/subtracker/:id', function(req, res, next) {
+      if (that.trackers[req.params.trackerId] === undefined){
+        res.send(404);
+      } else {
+        res.send(that.trackers[req.params.trackerId].getSubTracker(req.params.id)||404);
+      }
+
+      return next();
+    });
+
+    this.restServer.get(/\/tracker\/?.*/, restify.serveStatic({
+      directory: GLOBAL.dataPath
+    }));
+
     /* Wire up events */
 
     this.restServer.on('initialized', function(name, url){
@@ -98,6 +149,31 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     dhtService.on(dhtService.events.joined, function(){
       eventbus.emit(eventbus.events.dhtService.joined);
       log.info('node joined the network, id = ' + dhtNode.getID() + ', address = ' + dhtNode.getAddress());
+
+      _.each(that.nodeConfig.remoteTrackers, function(tracker, index, list){
+        var trackerId = tracker.id;
+        var nodeId = tracker.ttnNodeId;
+        if (trackerId === undefined){
+          return log.warn("Unable to initialize remote tracker, no trackerId.", tracker);
+        }
+        if (nodeId === undefined){
+          return log.warn("Unable to initialize remote tracker, no nodeId.", tracker);
+        }
+        new RemoteTracker(trackerId, undefined, function(tracker){
+          that.trackers[trackerId] = tracker;
+          that.emit(that.events.trackerAdded, tracker);
+        });
+
+        that.dhtService.getNodeAsync(nodeId, function(dhtNode){
+          console.log("dhtNode = ",dhtNode);
+          if (dhtNode === undefined){
+            log.warn("Unable to find DHT Node " + nodeId);
+          }
+          that.trackers[trackerId].setDhtNode(dhtNode);
+        });
+      });
+
+
     })
     .on(dhtService.events.joining, function(){
       log.debug('node joining network...');
@@ -127,11 +203,11 @@ var TTNNode = module.exports = new Class(EventEmitter, {
   },
 
   getLocalTrackers: function(){
-    return this.trackerService.trackers;
+    return this.trackers;
   },
 
   getLocalTracker: function(id){
-    return this.trackerService.trackers[id];
+    return this.trackers[id];
   },
 
   createNewTracker: function(newTracker){
@@ -176,7 +252,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     fs.writeFileSync(this.nodeConfigPath, JSON.stringify(this.nodeConfig, null, 4));
 
     var tracker = new Tracker(GLOBAL.dataPath+ "/tracker/" + newId+"/tracker.json", function(t){
-      that.trackerService.addTracker(t);
+      that.addTracker(t);
     })
 
   },
@@ -235,4 +311,53 @@ var TTNNode = module.exports = new Class(EventEmitter, {
 
   },
 
+  addTracker: function(tracker){
+    if (tracker === undefined) throw Error("Attempt to add null tracker.");
+
+    log.info("added new tracker with id: "+ tracker.id);
+    this.trackers[tracker.id] = tracker;
+    this.emit(this.events.trackerAdded, tracker);
+  },
+
+  getTracker: function(id){
+    return this.trackers[id];
+  },
+
+  getRemoteTrackerAsync: function(nodeId, trackerId, dhtService, callback){
+    var that = this;
+
+    dhtService.getNodeAsync(nodeId, function(dhtNode){
+      new RemoteTracker(trackerId, dhtNode, function(tracker){
+        that.addTracker(tracker);
+        tracker.persist();
+        if (callback) {
+          callback(tracker);
+        }
+      });
+    });
+  },
+
+  getRemoteThingAsync: function(trackerId, thingId, version, callback){
+    var that = this;
+    var tracker = this.getTracker(trackerId);
+    if (tracker === undefined){
+      log.error("No local tracker with id: " + trackerId);
+    }
+    tracker.getThing(thingId, version, function(thing){
+      if (callback) {
+        callback(thing);
+      }
+    });
+  },
+
+  removeRemoteTrackerAsync: function(trackerId, callback){
+
+    //TODO - careful! Should we have a check to ensure that local trackers cannot be deleted?
+    delete this.trackers[trackerId];
+
+    this.emit(this.events.trackerRemoved, trackerId);
+
+    callback();
+
+  },
 });

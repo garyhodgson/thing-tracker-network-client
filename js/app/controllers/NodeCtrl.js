@@ -2,8 +2,6 @@ var RemoteTTNNode = require('./js/remote-ttn-node');
 
 angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$timeout', 'ttnNode', function($scope, $timeout, ttnNode) {
 
-  var trackerService = ttnNode.trackerService;
-
   $scope.getNode = function(nodeId){
     nodeId = nodeId.trim();
 
@@ -12,7 +10,7 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
     });
 
 
-    /*trackerService.getRemoteTrackersAsync(nodeId, ttnNode.dhtService, function(trackers){
+    /*ttnNode.getRemoteTrackersAsync(nodeId, ttnNode.dhtService, function(trackers){
       $timeout(function(){
         _.each(trackers, function(tracker){
           $scope.trackers[tracker.id] = tracker;
@@ -23,7 +21,7 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
 
   $scope.removeNode = function(nodeId){
     nodeId = nodeId.trim();
-    trackerService.removeRemoteTrackerAsync(nodeId, function(err){
+    ttnNode.removeRemoteTrackerAsync(nodeId, function(err){
       if (err) {
         log.error(err);
         return;

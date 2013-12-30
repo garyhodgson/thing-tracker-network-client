@@ -17,7 +17,6 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
   $scope.trackers = {};
   $scope.thingsSummary = [];
   $scope.stats = {};
-  var trackerService = ttnNode.trackerService;
 
   $scope.statsTooltip = "";
 
@@ -40,24 +39,21 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
 
   ttnNode.on(ttnNode.events.initialized, function(){
     log.debug("ttnNode.events.initialized");
-  });
 
-  trackerService.on(trackerService.events.initialized, function(){
-    console.log("trackerService initialized");
     $timeout(function(){
-      $scope.trackers = trackerService.trackers;
+      $scope.trackers = ttnNode.trackers;
     });
   })
-  .on(trackerService.events.trackerRemoved, function(){
-    log.debug("trackerService.events.trackerRemoved");
+  .on(ttnNode.events.trackerRemoved, function(){
+    log.debug("ttnNode.events.trackerRemoved");
     $timeout(function(){
-      $scope.trackers = trackerService.trackers;
+      $scope.trackers = ttnNode.trackers;
     });
   })
-  .on(trackerService.events.trackerAdded, function(){
-    log.debug("trackerService.events.trackerAdded");
+  .on(ttnNode.events.trackerAdded, function(){
+    log.debug("ttnNode.events.trackerAdded");
     $timeout(function(){
-      $scope.trackers = trackerService.trackers;
+      $scope.trackers = ttnNode.trackers;
     });
   });
 
@@ -84,7 +80,7 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
   $scope.getRemoteTracker = function(nodeId, trackerId){
     nodeId = nodeId.trim();
     trackerId = trackerId.trim();
-    trackerService.getRemoteTrackerAsync(nodeId, trackerId, ttnNode.dhtService, function(tracker){
+    ttnNode.getRemoteTrackerAsync(nodeId, trackerId, ttnNode.dhtService, function(tracker){
       $timeout(function(){
           $scope.trackers[tracker.id] = tracker;
       });

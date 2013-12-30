@@ -6,7 +6,6 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
     var thingId = $routeParams.thingId;
     var trackerId = $routeParams.trackerId;
     var version = $routeParams.version;
-    var trackerService = ttnNode.trackerService;
 
     if (thingId === undefined){
       log.error("No Thing ID given.");
@@ -19,7 +18,7 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
     };
 
     $scope.dataPath = ttnNode.config.dataPath;
-    $scope.tracker = trackerService.getTracker(trackerId);
+    $scope.tracker = ttnNode.getTracker(trackerId);
 
     if ($scope.tracker === undefined){
       log.error("Unable to find tracker for thing: " +thingId);
@@ -28,8 +27,8 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
     }
 
     $scope.tracker.getThing(thingId, version, function(thing){
-      if (!thing){
-        log.error("Unable to find local thing with id: "+ id + " and version: " + version);
+      if (thing === undefined){
+        log.error("Unable to find local thing with id: "+ thingId + " and version: " + version);
         $location.path( "/" );
         return;
       }
