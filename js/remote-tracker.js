@@ -1,4 +1,5 @@
 var Class = require('jsclass/src/core').Class,
+    Tracker = require("./tracker"),
     eventbus = require('./event-bus'),
     _ = require('underscore'),
     fs = require("fs-extra"),
@@ -10,7 +11,7 @@ var Class = require('jsclass/src/core').Class,
     Crypto = require("crypto"),
     fstream = require("fstream");
 
-var RemoteTracker = module.exports = new Class({
+var RemoteTracker = module.exports = new Class(Tracker, {
 
   events: {
     trackerOnline:   "trackerOnline",
@@ -88,21 +89,6 @@ var RemoteTracker = module.exports = new Class({
     eventbus.emit((dhtNode === undefined) ? eventbus.events.tracker.trackerOffline : eventbus.events.tracker.trackerOnline, this.id );
   },
 
-  persist: function(){
-
-    fs.outputJson(this.trackerLocation, this._trackerJSON, function(err){
-      if (err){
-        return log.error(err);
-      }
-      log.info("Tracker Cached");
-    });
-  },
-
-
-  getThingSummary: function(id, callback){
-    callback(_.findWhere(this._trackerJSON.things, {'id':id}));
-  },
-
   isOnline: function(){
     return (this.dhtNode !== undefined);
   },
@@ -150,60 +136,26 @@ var RemoteTracker = module.exports = new Class({
     }
   },
 
-  getThingLatestVersion: function(id){
-
-    var thingJSON = _.findWhere(this._trackerJSON.things, {id: id});
-
-    if (thingJSON && thingJSON.latestVersion){
-        return thingJSON.latestVersion
+  getDownloadPath: function(thing){
+    if (!thing){
+      log.error("Attempt to get download path with an undefined thing reference.");
+      return undefined;
     }
-  },
-
-  getJSON: function(){
-    return this._trackerJSON;
-  },
-
-  mapThingsSummary: function(callback){
-    if (this._trackerJSON === undefined){
-      log.warn("Unable to map things summary - no JSON found for tracker: " + this.id)
-      return;
-    }
-    var that = this;
-
-    _.each(this._trackerJSON.things, function(thing, index, list){
-      callback({
-        trackerId: that.id,
-        id: thing.id,
-        title: thing.title,
-        summary: thing.summary,
-        thumbnailURL: thing.thumbnailURL||undefined
-      });
-    });
-  },
-
-  getSubTracker: function(id){
-    if (this._trackerJSON === undefined){
-      return;
-    }
-    return _.find(this._trackerJSON.trackers||[], function(it){ return it.id == id; })
-  },
-
-  isThingCachedLocally: function(thing){
-    return false;
+    return fs.realpathSync(GLOBAL.dataPath)+"/cache/tracker/"+this.id+"/thing/"+thing.id+"/version/"+thing.version+"/content/";
   },
 
   downloadThing: function(thing, callback){
-    if (!thing){
+    if (thing === undefined){
       log.error("Attempt to download content with an undefined thing reference.");
       return;
     }
 
-    if (!thing.downloadURL){
+    if (thing.downloadURL === undefined){
       log.error("Attempt to download content with an undefined thing downloadURL.");
       return;
     }
 
-    if (!GLOBAL.dataPath){
+    if (GLOBAL.dataPath === undefined){
       return log.error("No data path set!");
     }
 
@@ -211,7 +163,10 @@ var RemoteTracker = module.exports = new Class({
      return log.error("Tracker has no DHT node.");
     }
 
+    //TODO - fix to use rest server + protocol
     var url = 'http://' + this.dhtNode._address+thing.downloadURL;
+
+    console.log("url = ",url);
 
     var filename=path.basename(url);
     var filenameExt = path.extname(filename);
@@ -221,7 +176,7 @@ var RemoteTracker = module.exports = new Class({
       return;
     }
 
-    var cacheZipLocation = fs.realpathSync(GLOBAL.dataPath) +"/cache/tracker/"+this.id+"/thing/"+thing.id + "/" + thing.version;
+    var cacheZipLocation = fs.realpathSync(GLOBAL.dataPath) +"/cache/tracker/"+this.id+"/thing/"+thing.id + "/version/" + thing.version;
     var cacheContentLocation = cacheZipLocation + "/content/";
 
     if (!fs.existsSync(cacheContentLocation)){
@@ -234,19 +189,23 @@ var RemoteTracker = module.exports = new Class({
 
     var request = http.get(url, function(response) {
 
-      response
-      .pipe(unzip.Parse())
-      .pipe(outputDirStream);
+      if (response.statusCode == 200){
+        // Unpack the zip locally (commented out as it might be dangerous)
+        //response.pipe(unzip.Parse()).pipe(outputDirStream);
 
-      response
-      .pipe(file)
+        // Save the zip file.
+        response.pipe(file)
 
-      file.on('finish', function() {
+        file.on('finish', function() {
+          file.close();
+          if (callback){
+            callback(cacheZipLocation);
+          }
+        });
+      } else {
+        log.warn("Error retrieving zip file. status code: ", response.statusCode);
         file.close();
-
-        callback(file);
-
-      });
+      }
 
     });
   }

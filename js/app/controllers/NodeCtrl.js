@@ -5,12 +5,12 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
   $scope.getNode = function(nodeId){
     nodeId = nodeId.trim();
 
-    new RemoteTTNNode(nodeId, ttnNode.dhtService, function(ttnNode){
+    new RemoteTTNNode(nodeId, ttnNode.dhtNode, function(ttnNode){
       console.log("ttnNode = ",ttnNode);
     });
 
 
-    /*ttnNode.getRemoteTrackersAsync(nodeId, ttnNode.dhtService, function(trackers){
+    /*ttnNode.getRemoteTrackersAsync(nodeId, ttnNode.dhtNode, function(trackers){
       $timeout(function(){
         _.each(trackers, function(tracker){
           $scope.trackers[tracker.id] = tracker;

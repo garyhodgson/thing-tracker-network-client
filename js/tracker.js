@@ -12,7 +12,6 @@ var Tracker = module.exports = new Class({
   initialize: function(trackerLocation, callback) {
     var that = this;
 
-    this._trackerJSON;
     this.trackerLocation = trackerLocation;
     this.remote = false;
 
@@ -21,7 +20,6 @@ var Tracker = module.exports = new Class({
     }
 
     this._trackerJSON = JSON.parse(fs.readFileSync(trackerLocation));
-
     this.id = this._trackerJSON.id;
 
     if (callback){
@@ -195,6 +193,7 @@ var Tracker = module.exports = new Class({
 
   mapThingsSummary: function(callback){
     if (this._trackerJSON === undefined){
+      log.warn("Unable to map things summary - no JSON found for tracker: " + this.id)
       return;
     }
     var that = this;

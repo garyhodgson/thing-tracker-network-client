@@ -29,7 +29,7 @@ angular.module('TTNClientApp.controllers').controller('ToolsCtrl', ['$scope', 't
 
       $scope.nodes.push(node);
 
-      ttnNode.dhtService._node.getTracker(node._address, node._id, function(tracker){
+      ttnNode.dhtNode.ttnKadohNode.getTracker(node._address, node._id, function(tracker){
         console.log(tracker);
       })
 
@@ -44,7 +44,7 @@ angular.module('TTNClientApp.controllers').controller('ToolsCtrl', ['$scope', 't
     }
     ttnNode.findNodeByAddressAsync(nodeAddress, function(node){
       $scope.nodes.push(node);
-      ttnNode.dhtService._node.getTracker(node._address, node._id, function(tracker){
+      ttnNode.dhtNode.ttnKadohNode.getTracker(node._address, node._id, function(tracker){
         console.log(tracker);
       })
     });

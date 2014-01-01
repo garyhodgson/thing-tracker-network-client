@@ -38,6 +38,7 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
 
     $scope.downloadThing = function(){
       $scope.tracker.downloadThing($scope.thing, function(downloadPath){
+        console.log("downloadPath = ",downloadPath);
         gui.Shell.openItem(downloadPath);
       });
     };

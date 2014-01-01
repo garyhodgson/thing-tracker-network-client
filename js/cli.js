@@ -24,8 +24,6 @@ var argv  = require('optimist')
             .describe('c', 'config file.')
             .alias('d', 'data')
             .describe('d', 'path where data is stored.')
-            .alias('t', 'transient')
-            .describe('t', 'do not generate or persist keys')
             .alias('i', 'interactive')
             .describe('i', 'start nodejs repl')
             .argv;
@@ -53,7 +51,6 @@ nconf.defaults({
           "joinDHT" : "true",
           "startRESTServer" : "true"
         },
-        "transient" : argv.transient?"true":"false",
         "dataPath": argv.d || './data'
       });
 
@@ -71,7 +68,7 @@ ttnNode.on(ttnNode.events.displayStats, function(stats){
 
 ttnNode.on(ttnNode.events.foundNode, function(nodeId, node){
   if (node){
-    log.info("Found node with id: "+nodeId +" - "+ node);
+    log.info("Found node with id: " + nodeId +" - "+ node);
   } else {
     log.error("Unable to find node with id: " + nodeId);
   }

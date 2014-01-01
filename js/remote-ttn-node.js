@@ -10,10 +10,10 @@ var RemoteTTNNode = module.exports = new Class({
     initialized: "initialized"
   },
 
-  initialize: function(nodeId, dhtService, callback) {
+  initialize: function(nodeId, dhtNode, callback) {
     var that = this;
 
-    dhtService.getNodeAsync(nodeId, function(dhtNode){
+    dhtNode.getNodeAsync(nodeId, function(dhtNode){
 
       that.dhtNode = dhtNode;
 

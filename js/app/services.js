@@ -31,7 +31,6 @@ angular.module('TTNClientApp.services', [])
       "RESTServer" : { "port": parseInt(argv.restPort, 10) || 9880 },
       "startup" : { "joinDHT" : "true",
                     "startRESTServer" : "true"},
-      "transient" : argv.transient?"true":"false",
       "dataPath": argv.d || './data'
     });
 

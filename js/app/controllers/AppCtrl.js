@@ -57,7 +57,7 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
     });
   });
 
-  eventbus.on(eventbus.events.dhtService.joined, function(){
+  eventbus.on(eventbus.events.dhtNode.joined, function(){
     ttnNode.stats();
   });
 
@@ -80,7 +80,7 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
   $scope.getRemoteTracker = function(nodeId, trackerId){
     nodeId = nodeId.trim();
     trackerId = trackerId.trim();
-    ttnNode.getRemoteTrackerAsync(nodeId, trackerId, ttnNode.dhtService, function(tracker){
+    ttnNode.getRemoteTrackerAsync(nodeId, trackerId, ttnNode.dhtNode, function(tracker){
       $timeout(function(){
           $scope.trackers[tracker.id] = tracker;
       });
