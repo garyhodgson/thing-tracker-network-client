@@ -26,13 +26,17 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
       return;
     }
 
-    $scope.tracker.getThing(thingId, version, function(thing){
-      if (thing === undefined){
+    $scope.tracker.getThing(thingId, version, function(err, thing){
+      if (err || thing === undefined){
         log.error("Unable to find local thing with id: "+ thingId + " and version: " + version);
+
+        if (err) {
+          log.error(err);
+        }
+
         $location.path( "/" );
         return;
       }
-      thing.isCachedLocally = $scope.tracker.isThingCachedLocally(thing);
       $scope.thing = thing;
     });
 

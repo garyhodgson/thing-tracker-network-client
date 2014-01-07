@@ -4,12 +4,17 @@ var Class = require('jsclass/src/core').Class,
 var EventBus = new Class(EventEmitter, {
 
   events: {
+    app: {
+      closeRequest: "closeRequest"
+    },
     initialized: "initialized",
     dhtNode: {
       joined: "dhtNode.joined"
     },
     tracker: {
-      loaded: "tracker.loaded"
+      initialized: "tracker.initialized",
+      online: "tracker.online",
+      offline: "tracker.offline"
     }
   },
 

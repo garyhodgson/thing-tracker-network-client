@@ -1,24 +1,43 @@
 <div class="row-fluid">
 
-  <div class="span4" ng-controller="NodeCtrl">
+  <div class="span4">
+
+    <h4>My Node</h4>
+    <ul>
+      <li>
+        <a ng-click="showLocalTrackers()" href="">
+          <p>{{ thisNodeId }}</p>
+        </a>
+        <hr>
+      </li>
+    </ul>
+    <h4>Remote Nodes</h4>
+    <ul>
+      <li ng-repeat="(id, remoteNode) in remoteNodes track by id">
+        <a ng-click="showRemoteTrackers(remoteNode)" href="">
+          <h4>{{ id }}</h4>
+        </a>
+        <hr>
+      </li>
+    </ul>
 
     <h4>Trackers</h4>
     <ul>
 
       <li ng-repeat="(id, tracker) in trackers track by id">
-        <a ng-click="showThings(tracker)" href="#">
-          <h4>{{ tracker.getJSON().title }}</h4>
+        <a ng-click="showThings(tracker)" href="">
+          <h4>{{ tracker.getTitle()||id }}</h4>
         </a>
           <small>{{ id }}</small>
-          <p>{{ tracker.getJSON().description }}</p>
-          <p>{{ tracker.getJSON().things.length }} things.</p>
-          <p>{{ tracker.getJSON().trackers.length || 0}} sub-trackers.</p>
+          <p>{{ tracker.getDescription() }}</p>
+          <p>{{ tracker.getThingsCount() }} things.</p>
           <div ng-show="tracker.remote">
             <p>Remote</p>
-            <p ng-show="{{tracker.isOnline()}}">Online</p>
-            <p ng-hide="{{tracker.isOnline()}}">Offline</p>
-            <p ng-show="{{tracker.getJSON().verified}}">Verified</p>
-            <p ng-hide="{{tracker.getJSON().verified}}">Not Verified!</p>
+            <p ng-show="tracker.online">Online</p>
+            <p ng-hide="tracker.online">Offline</p>
+            <p ng-show="tracker.verified">Verified</p>
+            <p ng-hide="tracker.verified">Not Verified!</p>
+            <h4 ng-show="tracker.online"><a ng-click="updateTracker(id)" href="">update</a></h4>
           </div>
           <h4 ng-hide="tracker.remote"><a href="#/app/tracker/{{id}}/thing/new">new thing</a></h4>
           <hr>
@@ -27,15 +46,20 @@
 
     <h4>testing...</h4>
     <div>
-    <button ng-click="getRemoteTracker('0ed43ef50b8d9496414b2d4fa07f87cdc733df6d','0ed43ef50b8d9496414b2d4fa07f87cdc733df6d')">Test Add</button>
-    <h4><a href="#/tracker/0ed43ef50b8d9496414b2d4fa07f87cdc733df6d/thing/da39a3ee5e6b4b0d3255bfef95601890afd80709">show thing</a></h4>
-
-    <h4><a href="#/app/tracker/new">new tracker</a></h4>
-
+    <h4><a href="#/app/tracker/new">New Tracker</a></h4>
 
     <form name="trackersForm">
-      <input type="text" ng-model="nodeId" name="nodeId" value="">
-      <input ng-click="getNode(nodeId)" type="button" value="Add Node" id="getNodeBtn">
+      <input type="text" ng-model="nodeId" name="nodeId" ng-trim="true" list="testNodeIDs">
+      <input ng-click="getRemoteNode(nodeId)" type="button" value="Add Node" id="getNodeBtn">
+      <datalist id="testNodeIDs">
+       <option value="">
+      </datalist>
+      <br>
+      <input type="text" ng-model="remoteTrackerURL" name="remoteTrackerURL" ng-trim="true" list="testTrackerURLs">
+      <input ng-click="getRemoteTrackerFromURL(remoteTrackerURL)" type="button" value="Add Tracker from URL" id="getRemoteTrackerFromURLBtn">
+      <datalist id="testTrackerURLs">
+       <option value="http://garyhodgson.com/thingtracker.service/">
+      </datalist>
     </form>
   </div>
 

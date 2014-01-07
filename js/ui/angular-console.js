@@ -1,6 +1,6 @@
 var Class = require('jsclass/src/core').Class,
     colors = require('colors'),
-    _ = require("underscore");
+    _ = require("lodash");
 
 colors.mode = "browser";
 

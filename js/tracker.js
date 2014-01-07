@@ -1,6 +1,6 @@
 var Class = require('jsclass/src/core').Class,
     eventbus = require('./event-bus'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     fs = require("fs-extra"),
     log = require('kadoh/lib/logging').ns('Tracker'),
     async = require("async"),
@@ -26,6 +26,23 @@ var Tracker = module.exports = new Class({
       callback(that);
     }
   },
+
+  getThingsCount: function(){
+    return this._trackerJSON.things.length;
+  },
+
+  getID: function(){
+    return this._trackerJSON.id;
+  },
+
+  getTitle: function(){
+    return this._trackerJSON.title;
+  },
+
+  getDescription: function(){
+    return this._trackerJSON.description;
+  },
+
 
   persist: function(){
     fs.outputJson(this.trackerLocation, this._trackerJSON, function(err){
@@ -174,16 +191,15 @@ var Tracker = module.exports = new Class({
     }
 
     if (_.isUndefined(version)){
-      log.error("Unable to determine latest version for Thing with id: "+ id);
-      callback(undefined);
+      callback("Unable to determine latest version for Thing with id: "+ id, undefined);
     }
 
     var thingFilename = GLOBAL.dataPath+'/tracker/'+this.id+'/thing/'+id+'/version/'+version+'/thing.json';
     if (!fs.existsSync(thingFilename)){
-      callback(undefined);
+      callback("Unable to find thing metadata at: " + thingFilename);
     }
 
-    callback(JSON.parse(fs.readFileSync(thingFilename)));
+    callback(null, JSON.parse(fs.readFileSync(thingFilename)));
 
   },
 

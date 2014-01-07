@@ -1,4 +1,5 @@
 var gui = require('nw.gui'),
+    eventbus = require('./js/event-bus'),
     log = require('kadoh/lib/logging').ns('TTNClient');
 
 var EventEmitter = require('events').EventEmitter;
@@ -75,11 +76,7 @@ var app = angular.module('TTNClientApp', [
     menu.append(new gui.MenuItem({
       label: 'quit',
       click: function() {
-        alertify.confirm("Confirm Quit", function (e) {
-            if (e) {
-              gui.App.closeAllWindows();
-            }
-        });
+        win.close();
       }
     }));
 
@@ -97,6 +94,15 @@ var app = angular.module('TTNClientApp', [
         win.hide();
       }
     }));
+
+    win.on('close', function() {
+      var that = this;
+      console.log("close");
+
+      eventbus.emit(eventbus.events.app.closeRequest, function(){
+        that.close(true);
+      });
+    });
 
     tray.menu = menu;
 

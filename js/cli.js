@@ -1,5 +1,5 @@
 var fs = require("fs"),
-    _ = require("underscore"),
+    _ = require("lodash"),
     nconf = require('nconf'),
     restify = require('restify'),
     TTNNode = require('./ttn-node'),
@@ -78,7 +78,7 @@ if (argv.i){
   log.info("Starting REPL...")
 
   var repl = require('repl').start('> ').on('exit', function () {
-    ttnNode.shutdown(function(){
+    ttnNode.leaveDHTNetwork(function(){
       process.exit();
     });
   });

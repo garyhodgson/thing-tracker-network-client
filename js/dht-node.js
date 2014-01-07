@@ -1,7 +1,6 @@
 var Class = require('jsclass/src/core').Class,
-    Forwardable = require('jsclass/src/forwardable').Forwardable,
     kadoh = require("kadoh"),
-    _ = require("underscore"),
+    _ = require("lodash"),
     Crypto = require("crypto"),
 		GetTTNNodeInfoRPC = require('./rpc/getttnnodeinfo.js'),
     EventEmitter = require('events').EventEmitter,
@@ -10,14 +9,14 @@ var Class = require('jsclass/src/core').Class,
 /**
   TTNKadohNode extends the kadoh node class, which uses the klass library.
   Further down is the DHTNode class definition which uses an instance of TTNKadohNode.
-  Some methods are forwarded to TTNKadohNode via DHTNode.
 */
 
 var TTNKadohNode = kadoh.logic.KademliaNode.extend({
 
-  initialize: function(id, options, trackerInfo) {
+  initialize: function(id, options, ttnNodeInfo) {
     this.supr(id, options);
-    this.trackerInfo = trackerInfo;
+    console.log("ttnNodeInfo.externalIPAddress = ",ttnNodeInfo.externalIPAddress);
+    this.ttnNodeInfo = ttnNodeInfo;
     this._reactor.register({
       GET_TTN_NODE_INFO : GetTTNNodeInfoRPC
     });
@@ -43,13 +42,13 @@ var TTNKadohNode = kadoh.logic.KademliaNode.extend({
   handleGET_TTN_NODE_INFO: function(rpc) {
     var ttnNodeInfo = {
       "nodeId":this.getID(),
-      "restServer":this.getAddress().replace('0.0.0.0','127.0.0.1'),
-      "restProtocol": this.trackerInfo.restProtocol
+      "restAddress":this.getAddress().replace('0.0.0.0','127.0.0.1'),
+      "restProtocol": this.ttnNodeInfo.restProtocol
     };
 
-    if (this.trackerInfo && this.trackerInfo.nodeKeys){
-      ttnNodeInfo.publicKey = this.trackerInfo.nodeKeys.getPublicKey();
-      var signature = this.trackerInfo.nodeKeys.sign(JSON.stringify(ttnNodeInfo));
+    if (this.ttnNodeInfo && this.ttnNodeInfo.nodeKeys){
+      ttnNodeInfo.publicKey = this.ttnNodeInfo.nodeKeys.getPublicKey();
+      var signature = this.ttnNodeInfo.nodeKeys.sign(JSON.stringify(ttnNodeInfo));
       ttnNodeInfo.nodeIdPublicKeySignature = signature;
     }
 
@@ -58,7 +57,6 @@ var TTNKadohNode = kadoh.logic.KademliaNode.extend({
 });
 
 var DHTNode = module.exports = new Class(EventEmitter, {
-  extend: Forwardable,
 
   events: {
     initialized: "initialized",
@@ -69,27 +67,23 @@ var DHTNode = module.exports = new Class(EventEmitter, {
     remoteNodeRetrieved: "remoteNodeRetrieved"
   },
 
-	initialize: function(id, options, trackerInfo) {
+	initialize: function(id, options, ttnNodeInfo) {
     var that = this;
+    this.connected = false;
+    this.joined = false;
+    this.ttnNodeInfo = ttnNodeInfo;
 
-    this.ttnKadohNode = new TTNKadohNode(id, options, trackerInfo);
+    this.ttnKadohNode = new TTNKadohNode(id, options, ttnNodeInfo);
 
     this._remoteNodeCache = {};
 
     process.nextTick(function() { that.emit(that.events.initialized) });
 	},
-/*
-  getID: function(){
-    return this.ttnKadohNode.getID();
-  },
-
-  getAddress: function(){
-    return this.ttnKadohNode.getAddress();
-  },*/
 
   connect: function(){
     var that = this;
     this.ttnKadohNode.connect(function() {
+      that.connected = true;
       that.emit(that.events.connected)
     });
   },
@@ -97,6 +91,8 @@ var DHTNode = module.exports = new Class(EventEmitter, {
   disconnect: function(callback){
     var that = this;
     this.ttnKadohNode.disconnect(function(){
+      that.joined = false;
+      that.connected = false;
       that.emit(that.events.disconnected);
       if (callback) callback();
     }, this);
@@ -106,8 +102,17 @@ var DHTNode = module.exports = new Class(EventEmitter, {
     var that = this;
     that.emit(that.events.joining);
     this.ttnKadohNode.join(function() {
+      that.joined = true;
       that.emit(that.events.joined);
     });
+  },
+
+  isJoined: function(){
+    return this.joined;
+  },
+
+  isConnected: function(){
+    return this.connected;
   },
 
   pingNodeAsync: function(nodeId, nodeAddress, callback){
@@ -123,10 +128,13 @@ var DHTNode = module.exports = new Class(EventEmitter, {
     if (this._remoteNodeCache[nodeId] !== undefined){
       callback(this._remoteNodeCache[nodeId]);
     } else {
-      this.ttnKadohNode.findNode(nodeId, function(n){
-        if (n) {
+      this.ttnKadohNode.findNode(nodeId, function(remoteNode){
+        if (remoteNode) {
+          console.log("remoteNode = ",remoteNode);
 
-          that.ttnKadohNode.getTTNNodeInfo(n._address, n._id, function(ttnNodeInfo){
+          that.ttnKadohNode.getTTNNodeInfo(remoteNode._address, remoteNode._id, function(ttnNodeInfo){
+
+            console.log("dht-node, ttnNodeInfo, ", ttnNodeInfo);
 
             if (ttnNodeInfo == null){
               log.warn("Unable to find ttnNodeInfo for node " + nodeId);
@@ -140,13 +148,13 @@ var DHTNode = module.exports = new Class(EventEmitter, {
                 log.error("public key hash of remote node does not match node id!")
               }
 
-              n.ttnNodeInfo = ttnNodeInfo
+              remoteNode.ttnNodeInfo = ttnNodeInfo
             }
 
-            that._remoteNodeCache[nodeId.toString()] = n;
-            that.emit(that.events.remoteNodeRetrieved, n);
+            that._remoteNodeCache[nodeId.toString()] = remoteNode;
+            that.emit(that.events.remoteNodeRetrieved, remoteNode);
 
-            callback(n);
+            callback(remoteNode);
           });
 
 
@@ -155,6 +163,14 @@ var DHTNode = module.exports = new Class(EventEmitter, {
         }
       })
     }
+  },
+
+  getID: function(){
+    return this.ttnKadohNode.getID();
+  },
+
+  getAddress: function(){
+    return this.ttnKadohNode.getAddress();
   },
 
   peerCount: function(){
@@ -169,7 +185,8 @@ var DHTNode = module.exports = new Class(EventEmitter, {
   peerList: function(){
     return _.flatten(this.ttnKadohNode._routingTable._kbuckets.map(function(b){return b.array.map(function(x){return x})}));
   },
+  isConnected: function(){
+    return this.ttnKadohNode.state == "connected";
+  }
 
 });
-
-DHTNode.defineDelegators('ttnKadohNode', 'getID', 'getAddress');

@@ -1,7 +1,7 @@
 var Class = require('jsclass/src/core').Class,
     EventEmitter = require('events').EventEmitter,
     keypair = require('keypair'),
-    fs = require("fs"),
+    fs = require("fs-extra"),
     Crypto = require("crypto"),
     pem = require('pem'),
     log = require('kadoh/lib/logging').ns('NodeKeys');
@@ -14,7 +14,7 @@ var NodeKeys = module.exports = new Class(EventEmitter, {
 
   initialize: function(keysLocation, nodeId) {
     if (keysLocation === undefined) throw Error("No keys location given");
-    if (!fs.existsSync(keysLocation)) throw new Error('Non-existant keys location');
+    if (!fs.existsSync(keysLocation)) throw new Error('Non-existant keys location: ' + keysLocation);
     var that = this;
 
 

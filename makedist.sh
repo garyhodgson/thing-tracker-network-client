@@ -12,7 +12,7 @@ rm dist/ttn-client.exe
 rm dist/ttn-client.nw
 rm dist/ttn-client-distribution.zip
 
-zip -r dist/ttn-client.nw index.html js css img node_modules package.json README.md bin
+zip -r dist/ttn-client.nw index.html js views css img node_modules package.json README.md bin
 cat dist/nw.exe dist/ttn-client.nw > dist/ttn-client.exe
 chmod +x dist/ttn-client.exe
 cd dist

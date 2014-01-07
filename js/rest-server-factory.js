@@ -11,10 +11,9 @@ var RestServerFactory = module.exports = new Class(EventEmitter, {
 
   instance: function(nodeKeys, protocol){
 
-    var config = {name: "TTNClient:transient"};
+    var config = {name: "TTNClient:" + nodeKeys.getPublicKeyHash()};
 
-    if (nodeKeys !== undefined && protocol == "https"){
-      config.name = "TTNClient:" + nodeKeys.getPublicKeyHash();
+    if (protocol == "https"){
       config.certificate = nodeKeys.getCertificate();
       config.key = nodeKeys.getPrivateKey();
     }

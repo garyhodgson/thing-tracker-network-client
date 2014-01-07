@@ -1,7 +1,7 @@
 var Class = require('jsclass/src/core').Class,
     Tracker = require("./tracker"),
     eventbus = require('./event-bus'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     fs = require("fs-extra"),
     restify = require('restify'),
     log = require('kadoh/lib/logging').ns('RemoteTracker'),
@@ -18,31 +18,32 @@ var RemoteTracker = module.exports = new Class(Tracker, {
     trackerOffline: "trackerOffline"
   },
 
-  initialize: function(trackerId, dhtNode, callback) {
+  initialize: function(nodeId, trackerId, remoteNodeInfo, callback) {
     var that = this;
-    this.dhtNode = dhtNode;
+    this.nodeId = nodeId;
+    this.remoteNodeInfo = remoteNodeInfo;
     this._trackerJSON;
     this.id = trackerId;
     this.remote = true;
-    this.trackerLocation = GLOBAL.dataPath+ "/cache/tracker/" + trackerId + "/tracker.json";
+    this.verified = false;
+    this.trackerLocation = GLOBAL.dataPath+ "/cache/node/"+nodeId+"/tracker/" + trackerId + "/tracker.json";
 
     if (fs.existsSync(this.trackerLocation)){
       this._trackerJSON = JSON.parse(fs.readFileSync(this.trackerLocation));
-      this.id = this._trackerJSON.id;
 
       if (callback !== undefined){
-        callback(that);
+        callback(null, that);
       }
     } else {
-      if (this.dhtNode === undefined){
-        return log.warn("Unable to initialize Remote Tracker as DHT Node is undefined. ID = " + trackerId);
+      if (remoteNodeInfo === undefined){
+        return callback("Unable to initialize Remote Tracker as no cache exists, and remoteNodeInfo is undefined. ID = " + trackerId);
       }
-      var protocol = dhtNode.ttnNodeInfo.restProtocol||'http';
-      var client = restify.createJsonClient({url: protocol+'://' + dhtNode._address});
+      var protocol = remoteNodeInfo.restProtocol||'http';
+      var client = restify.createJsonClient({url: protocol+'://' + remoteNodeInfo.restAddress});
 
       var cb = function(tracker){
         if (callback !== undefined){
-          callback(tracker);
+          callback(null, tracker);
         }
         client.close();
       }
@@ -52,12 +53,12 @@ var RemoteTracker = module.exports = new Class(Tracker, {
 
         // TODO - check if node is verified by user
 
-        if (dhtNode.ttnNodeInfo == undefined){
-          log.warn("Unable to verify tracker as dht node has no metadata.");
-          remoteTrackerJSON.verified = false;
+        if (remoteNodeInfo.publicKey == undefined){
+          log.warn("Unable to verify tracker as remote node has no public key.");
+          that.verified = false;
         } else if (remoteTrackerJSON.signature == undefined){
           log.warn("Unable to verify tracker as no signature was found.");
-          remoteTrackerJSON.verified = false;
+          that.verified = false;
         } else {
           var verifier = Crypto.createVerify('RSA-SHA256');
 
@@ -66,12 +67,12 @@ var RemoteTracker = module.exports = new Class(Tracker, {
           delete payload.signature
           var signature = remoteTrackerJSON.signature
           verifier.update(JSON.stringify(payload));
-          var publicKey = dhtNode.ttnNodeInfo.publicKey;
+          var publicKey = remoteNodeInfo.publicKey;
 
-          remoteTrackerJSON.verified = verifier.verify(publicKey, signature, 'hex');
+          that.verified = verifier.verify(publicKey, signature, 'hex');
         }
 
-        if (!remoteTrackerJSON.verified){
+        if (!that.verified){
           log.warn("Remote tracker is not verified!");
         }
 
@@ -80,17 +81,11 @@ var RemoteTracker = module.exports = new Class(Tracker, {
       });
     };
 
-    process.nextTick(function() { eventbus.emit( (dhtNode === undefined) ? eventbus.events.tracker.trackerOffline : eventbus.events.tracker.trackerOnline, that.id ); });
-
+   process.nextTick(function() { eventbus.emit( eventbus.events.tracker.initialized, that); });
   },
 
-  setDhtNode: function(dhtNode){
-    this.dhtNode = dhtNode;
-    eventbus.emit((dhtNode === undefined) ? eventbus.events.tracker.trackerOffline : eventbus.events.tracker.trackerOnline, this.id );
-  },
-
-  isOnline: function(){
-    return (this.dhtNode !== undefined);
+  setRemoteNodeInfo: function(remoteNodeInfo){
+    this.remoteNodeInfo = remoteNodeInfo;
   },
 
   getThing: function(thingId, version, callback){
@@ -98,42 +93,41 @@ var RemoteTracker = module.exports = new Class(Tracker, {
     version = version || this.getThingLatestVersion(thingId);
     var thingURL = '/tracker/'+this.id+'/thing/'+thingId+'/version/'+version;
 
-    var cachedThingLocation = GLOBAL.dataPath + "/cache/"+thingURL + "/thing.json";
+    var cachedThingLocation = GLOBAL.dataPath + "/cache/node/"+this.nodeId+thingURL + "/thing.json";
 
     if (fs.existsSync(cachedThingLocation)){
       var thingJSON = JSON.parse(fs.readFileSync(cachedThingLocation));
       if (callback !== undefined){
-          callback(thingJSON);
+          callback(null, thingJSON);
         }
     } else {
-      if (this.dhtNode === undefined){
-        return log.warn("Unable to get Thing as DHT Node is undefined. ID = " + thingId);
+      if (this.remoteNodeInfo === undefined){
+        return log.warn("Unable to get Thing as remoteNodeInfo is undefined. ID = " + thingId);
       }
-      var protocol = (this.dhtNode.ttnNodeInfo&&this.dhtNode.ttnNodeInfo.restProtocol) || 'http';
-      var restAddress = (this.dhtNode.ttnNodeInfo&&this.dhtNode.ttnNodeInfo.restServer) || this.dhtNode._address.replace("0.0.0.0","127.0.0.1");
-      var client = restify.createJsonClient({url: protocol+'://' + restAddress});
+      var protocol = this.remoteNodeInfo.restProtocol || 'http';
+      var client = restify.createJsonClient({url: protocol+'://' + this.remoteNodeInfo.restAddress});
 
       var cb = function(thingJSON){
         if (callback !== undefined){
-          callback(thingJSON);
+          callback(null, thingJSON);
         }
         client.close();
       };
 
       client.get(thingURL, function(err, req, res, thingJSON) {
-          if (err) {
-            log.error("Error retrieving remote thing. "+err);
-            throw err;
-          }
-          console.log("thingJSON = ",thingJSON);
+        if (err) {return callback(err);}
 
-          fs.outputJson(cachedThingLocation, thingJSON, function(err){
-            if (err) return log.warn("Error caching remote thing, ", err);
-          });
-
-          cb(thingJSON);
+        fs.outputJson(cachedThingLocation, thingJSON, function(err){
+          if (err) {return log.warn("Error caching remote thing, ", err);}
         });
+
+        cb(thingJSON);
+      });
     }
+  },
+
+  createThing: function(newThing, files, thumbnailPaths){
+    throw new Error("Cannot create thing in remote tracker.");
   },
 
   getDownloadPath: function(thing){
@@ -141,7 +135,7 @@ var RemoteTracker = module.exports = new Class(Tracker, {
       log.error("Attempt to get download path with an undefined thing reference.");
       return undefined;
     }
-    return fs.realpathSync(GLOBAL.dataPath)+"/cache/tracker/"+this.id+"/thing/"+thing.id+"/version/"+thing.version+"/content/";
+    return fs.realpathSync(GLOBAL.dataPath)+"/cache/node/"+this.nodeId+ "/tracker/"+this.id+"/thing/"+thing.id+"/version/"+thing.version+"/content/";
   },
 
   downloadThing: function(thing, callback){
@@ -159,12 +153,12 @@ var RemoteTracker = module.exports = new Class(Tracker, {
       return log.error("No data path set!");
     }
 
-    if (this.dhtNode === undefined){
-     return log.error("Tracker has no DHT node.");
+    if (this.remoteNodeinfo === undefined){
+     return log.error("Tracker has no remoteNodeinfo.");
     }
 
     //TODO - fix to use rest server + protocol
-    var url = 'http://' + this.dhtNode._address+thing.downloadURL;
+    var url = 'http://' + remoteNodeinfo.restAddress+thing.downloadURL;
 
     console.log("url = ",url);
 
@@ -176,7 +170,7 @@ var RemoteTracker = module.exports = new Class(Tracker, {
       return;
     }
 
-    var cacheZipLocation = fs.realpathSync(GLOBAL.dataPath) +"/cache/tracker/"+this.id+"/thing/"+thing.id + "/version/" + thing.version;
+    var cacheZipLocation = fs.realpathSync(GLOBAL.dataPath) +"/cache/node/"+this.nodeId * "tracker/"+this.id+"/thing/"+thing.id + "/version/" + thing.version;
     var cacheContentLocation = cacheZipLocation + "/content/";
 
     if (!fs.existsSync(cacheContentLocation)){

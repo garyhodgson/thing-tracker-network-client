@@ -1,5 +1,5 @@
 var Class = require('jsclass/src/core').Class,
-    _ = require('underscore'),
+    _ = require('lodash'),
     fs = require("fs"),
     log = require('kadoh/lib/logging').ns('Thing'),
     path = require("path");

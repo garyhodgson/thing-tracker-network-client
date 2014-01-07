@@ -4,13 +4,20 @@ var logging = require('kadoh/lib/logging'),
     gui = require('nw.gui'),
     fs = require('fs-extra'),
     path = require('path'),
-    _ = require('underscore'),
+    _ = require('lodash'),
     Crypto = require("crypto"),
     RemoteTracker = require('./js/remote-tracker');
 
-_.templateSettings = { interpolate: /\{\{(.+?)\}\}/g };
-
 angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', '$timeout', '$sanitize', 'ttnNode','argv', 'urlRegExp', function($scope, $timeout, $sanitize, ttnNode, argv, urlRegExp) {
+
+  eventbus.on(eventbus.events.app.closeRequest, function(callback){
+    alertify.confirm("Confirm Quit", function (e) {
+      if (e) {
+        ttnNode.leaveDHTNetwork(callback);
+      }
+    });
+  });
+
   $scope.dataPath = ttnNode.config.dataPath;
   $scope.messages = [];
   $scope.notifier = alertify;
@@ -24,9 +31,7 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
 
   ttnNode.on(ttnNode.events.displayStats, function(stats){
    $scope.stats = stats;
-   $scope.statsTooltip = _.template(
-    "{{ peerCount }} nodes in {{ bucketCount }} {{ bucketCount>1?'buckets':'bucket' }}.",
-    $scope.stats);
+   $scope.statsTooltip = $scope.stats.peerCount + " nodes in " + $scope.stats.bucketCount + " " + ($scope.stats.bucketCount>1?'buckets':'bucket');
   });
 
   ttnNode.on(ttnNode.events.foundNode, function(nodeId, node){
@@ -37,32 +42,8 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
     }
   });
 
-  ttnNode.on(ttnNode.events.initialized, function(){
-    log.debug("ttnNode.events.initialized");
-
-    $timeout(function(){
-      $scope.trackers = ttnNode.trackers;
-    });
-  })
-  .on(ttnNode.events.trackerRemoved, function(){
-    log.debug("ttnNode.events.trackerRemoved");
-    $timeout(function(){
-      $scope.trackers = ttnNode.trackers;
-    });
-  })
-  .on(ttnNode.events.trackerAdded, function(){
-    log.debug("ttnNode.events.trackerAdded");
-    $timeout(function(){
-      $scope.trackers = ttnNode.trackers;
-    });
-  });
-
   eventbus.on(eventbus.events.dhtNode.joined, function(){
     ttnNode.stats();
-  });
-
-  eventbus.on(eventbus.events.tracker.trackerOnline, function(trackerId){
-    log.info("tracker online: ",trackerId);
   });
 
   $scope.resourcePath = function(itemLocation){
@@ -75,16 +56,6 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
     } else {
       return fs.realpathSync($scope.dataPath+itemLocation);
     }
-  };
-
-  $scope.getRemoteTracker = function(nodeId, trackerId){
-    nodeId = nodeId.trim();
-    trackerId = trackerId.trim();
-    ttnNode.getRemoteTrackerAsync(nodeId, trackerId, ttnNode.dhtNode, function(tracker){
-      $timeout(function(){
-          $scope.trackers[tracker.id] = tracker;
-      });
-    });
   };
 
 }]);

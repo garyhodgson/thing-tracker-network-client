@@ -1,4 +1,5 @@
-var fs = require('fs'),
+var path = require('path'),
+    fs = require('fs'),
     gui = require('nw.gui'),
     TTNNode = require('./js/ttn-node'),
     nconf = require('nconf');
@@ -15,14 +16,18 @@ angular.module('TTNClientApp.services', [])
   })
 
   .factory('ttnConfig', ['argv', function(argv){
-    if (argv.c){
+
+    var exeRootDir = path.dirname(process.execPath);
+
+    if (argv.c) {
       console.log("loading config from " + argv.c);
       nconf.file({ file: argv.c });
-    }
-
-    if (fs.existsSync(gui.App.dataPath + '/ttn-config.json')){
-      console.log("loading config from " + gui.App.dataPath + '/ttn-config.json');
-      nconf.file({ file: gui.App.dataPath + '/ttn-config.json' })
+    } else if (fs.existsSync(exeRootDir + '/ttn-config.json')) {
+      console.log("loading config from " + exeRootDir + '/ttn-config.json');
+      nconf.file({ file: exeRootDir + '/ttn-config.json' })
+    } else if (fs.existsSync('./ttn-config.json')) {
+      console.log("loading config from ./ttn-config.json");
+      nconf.file({ file: './ttn-config.json' })
     }
 
     nconf.defaults({
@@ -31,7 +36,7 @@ angular.module('TTNClientApp.services', [])
       "RESTServer" : { "port": parseInt(argv.restPort, 10) || 9880 },
       "startup" : { "joinDHT" : "true",
                     "startRESTServer" : "true"},
-      "dataPath": argv.d || './data'
+      "dataPath": argv.d || exeRootDir+'/data'
     });
 
     return nconf.load();
