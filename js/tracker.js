@@ -45,11 +45,12 @@ var Tracker = module.exports = new Class({
 
 
   persist: function(){
+    var that = this;
     fs.outputJson(this.trackerLocation, this._trackerJSON, function(err){
       if (err){
         return log.error(err);
       }
-      log.info("Tracker Persisted");
+      log.info("Tracker "+that.id+" persisted");
     });
   },
 

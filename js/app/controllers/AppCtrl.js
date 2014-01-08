@@ -10,10 +10,24 @@ var logging = require('kadoh/lib/logging'),
 
 angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', '$timeout', '$sanitize', 'ttnNode','argv', 'urlRegExp', function($scope, $timeout, $sanitize, ttnNode, argv, urlRegExp) {
 
+  process.on('uncaughtException', function(err) {
+    if (console){
+      console.log('UncaughtException', err);
+      console.log('Shutting down TTN Node');
+    }
+    if (ttnNode){
+      ttnNode.shutdown(function(){
+        if (console){
+          console.log('TTN Node shutdown.');
+        }
+      });
+    }
+  });
+
   eventbus.on(eventbus.events.app.closeRequest, function(callback){
     alertify.confirm("Confirm Quit", function (e) {
       if (e) {
-        ttnNode.leaveDHTNetwork(callback);
+        ttnNode.shutdown(callback);
       }
     });
   });
@@ -45,6 +59,10 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
   eventbus.on(eventbus.events.dhtNode.joined, function(){
     ttnNode.stats();
   });
+
+  $scope.navigateToURL = function(url){
+    gui.Shell.openExternal(url);
+  };
 
   $scope.resourcePath = function(itemLocation){
     if (itemLocation == undefined){

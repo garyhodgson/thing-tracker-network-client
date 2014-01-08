@@ -82,10 +82,6 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
     });
   };
 
-  $scope.navigateToThingURL = function(url){
-    gui.Shell.openExternal(url);
-  };
-
   $scope.getRemoteTrackerFromURL = function(remoteTrackerURL){
     ttnNode.getRemoteTrackerFromURL(remoteTrackerURL, function(err, remoteTrackerPlaceholderTTNNode){
       if (err) {

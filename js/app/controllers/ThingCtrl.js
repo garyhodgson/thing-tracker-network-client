@@ -38,6 +38,7 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
         return;
       }
       $scope.thing = thing;
+      console.log("$scope.thing = ",$scope.thing);
     });
 
     $scope.downloadThing = function(){

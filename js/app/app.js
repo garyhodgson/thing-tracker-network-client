@@ -1,8 +1,7 @@
 var gui = require('nw.gui'),
     eventbus = require('./js/event-bus'),
+    EventEmitter = require('events').EventEmitter,
     log = require('kadoh/lib/logging').ns('TTNClient');
-
-var EventEmitter = require('events').EventEmitter;
 
 var app = angular.module('TTNClientApp', [
     'ngSanitize',

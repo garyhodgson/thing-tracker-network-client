@@ -48,7 +48,7 @@
 
         <div class="meta row-fluid">
           <div class="span6">
-            <div id="home"><i class='icon-home' title="Repository"></i>&nbsp;<a title="{{thing.url}}" href="{{thing.url}}">{{thing.url|stripUrlProtocol|truncate:28:"&hellip;"}}</a></div>
+            <div id="home"><i class='icon-home' title="Repository"></i>&nbsp;<a ng-show="thing.url" title="{{thing.url}}" ng-click="navigateToURL(thing.url)" href="">{{thing.url|stripUrlProtocol|truncate:28:"&hellip;"}}</a></div>
           </div>
 
           <div class="span6">
@@ -93,7 +93,8 @@
 
         <div class="lists row-fluid">
           <tabset>
-            <tab heading="BOM">
+
+            <tab heading="BOM" ng-show="thing.billOfMaterials">
               <div class="list-item row-fluid" ng-repeat="item in thing.billOfMaterials | orderBy:'partNumber'">
                 <div class="span2">
                   <small class="pull-left">{{ item.partNumber }}</small>
@@ -109,18 +110,18 @@
                   <small ng-show="item.xBOMMetadata.note"><span class="label label-warning">Note:</span> {{ item.xBOMMetadata.note }}</small>
                 </div>
                 <div class="span3">
-                  <span ng-show="thing.isCachedLocally">
-                    <span ng-show="item.url">
-                      <a href="" ng-click="openBOMItem(item.url)">Open</a>, <a href="" ng-click="showBOMItem(item.url)">Show</a>
+                  <span ng-show="item.url">
+                    <span ng-show="thing.isCachedLocally">
+                      <a href="" ng-click="openBOMItem(item.url)">Open</a>,
+                      <a href="" ng-click="showBOMItem(item.url)">Show</a>
                     </span>
+                    <a ng-hide="thing.isCachedLocally" href="" ng-click="navigateToURL(item.url)">Open</a>
                   </span>
                 </div>
               </div>
-              <div class="list-item" ng-hide="thing.billOfMaterials">
-                  No BOM given.
-              </div>
             </tab>
-            <tab heading="Instructions">
+
+            <tab heading="Instructions" ng-show="thing.instructions">
               <div class="list-item row-fluid" ng-repeat="instruction in thing.instructions | orderBy:'step'">
                   <div class="span1">
                     <small>{{instruction.step}}</small>
@@ -135,19 +136,14 @@
                     <small ng-show="instruction.xInstructionMetadata.note"><span class="label label-warning">Note:</span> {{instruction.xInstructionMetadata.note}}</small>
                   </div>
               </div>
-              <div class="list-item" ng-hide="thing.instructions">
-                  No Instructions given.
-              </div>
             </tab>
 
-            <tab heading="Relationships">
+            <tab heading="Relationships" ng-show="thing.relationships">
               <ul class="list-item" ng-repeat="relationship in thing.relationships">
-                <li><a href="" ng-click="navigateToThingURL(relationship.url)">{{ relationship.url}}</a></li>
+                <li><a href="" ng-click="navigateToURL(relationship.url)">{{ relationship.url}}</a></li>
               </ul>
-              <div class="list-item" ng-hide="thing.relationships">
-                  No Relationships given.
-              </div>
             </tab>
+
           </tabset>
         </div>
       </div>

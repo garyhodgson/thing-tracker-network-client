@@ -78,7 +78,7 @@ if (argv.i){
   log.info("Starting REPL...")
 
   var repl = require('repl').start('> ').on('exit', function () {
-    ttnNode.leaveDHTNetwork(function(){
+    ttnNode.shutdown(function(){
       process.exit();
     });
   });

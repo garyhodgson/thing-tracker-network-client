@@ -252,12 +252,22 @@ var TTNNode = module.exports = new Class(EventEmitter, {
   },
 
   joinDHTNetwork: function(){
+    if (!this.dhtNode){
+      return;
+    }
     this.dhtNode.connect();
   },
 
-  leaveDHTNetwork:  function(cb){
-    console.log("leaveDHTNetwork");
-    this.dhtNode.disconnect(cb);
+  shutdown:  function(cb){
+    log.info("Shutting down TTN Node.");
+
+    if (this.restServer){
+      this.restServer.close();
+    }
+
+    if (this.dhtNode){
+      this.dhtNode.disconnect(cb);
+    }
   },
 
   getExternalIPAddress: function(){

@@ -18,6 +18,8 @@ var RemoteTrackerPlaceholderTTNNode = module.exports = new Class(RemoteTTNNode, 
 
   initialize: function(remoteTrackerURL, callback) {
 
+    console.log("remoteTrackerURL = ",remoteTrackerURL);
+    var that = this;
     var remotePlaceholder = this;
     this.trackers = {};
     var shasum = Crypto.createHash('sha1');
@@ -29,7 +31,7 @@ var RemoteTrackerPlaceholderTTNNode = module.exports = new Class(RemoteTTNNode, 
 
     if (!GLOBAL.skipCache && fs.existsSync(this.nodeLocation)){
       this._nodeJSON = fs.readJsonSync(this.nodeLocation);
-      this._populateTrackers(callback);
+      this._populateTrackers(this._nodeJSON.trackers, false, callback);
     } else {
 
       var client = restify.createJsonClient({url: this.url.protocol + "//" + this.url.host});
@@ -37,7 +39,7 @@ var RemoteTrackerPlaceholderTTNNode = module.exports = new Class(RemoteTTNNode, 
       var cb = function(remoteTrackerJSON){
 
         remoteTrackerJSON.title = remoteTrackerJSON.title || remoteTrackerURL;
-        remoteTrackerJSON.id = remoteTrackerJSON.id || this.nodeId;
+        remoteTrackerJSON.id = remoteTrackerJSON.id || that.nodeId;
 
         var trackerSummary = JSON.parse(JSON.stringify(remoteTrackerJSON));
 
@@ -50,14 +52,15 @@ var RemoteTrackerPlaceholderTTNNode = module.exports = new Class(RemoteTTNNode, 
         }
 
         remotePlaceholder._nodeJSON = {
-          "nodeId" : this.nodeId,
+          "nodeId" : that.nodeId,
           "url": remoteTrackerURL,
           "trackers": [
             trackerSummary
           ]
         }
+
         remotePlaceholder.persist();
-        remotePlaceholder._populateTrackers([remoteTrackerJSON], callback);
+        remotePlaceholder._populateTrackers([remoteTrackerJSON], true, callback);
         client.close();
       }
 
@@ -68,7 +71,7 @@ var RemoteTrackerPlaceholderTTNNode = module.exports = new Class(RemoteTTNNode, 
     }
   },
 
-  _populateTrackers: function(trackers, callback){
+  _populateTrackers: function(trackers, persist, callback){
     var that = this;
     _.each(trackers, function(trackerJSON, index, list){
 
@@ -77,7 +80,9 @@ var RemoteTrackerPlaceholderTTNNode = module.exports = new Class(RemoteTTNNode, 
         if (err){ return callback(err); }
 
         that.addTracker(tracker);
-        tracker.persist();
+        if (persist){
+          tracker.persist();
+        }
       });
     });
 

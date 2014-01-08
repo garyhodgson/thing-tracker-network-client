@@ -24,10 +24,10 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
 
     this.nodeLocation = GLOBAL.dataPath+"/cache/node/"+nodeId + "/node.json";
 
-    if (fs.existsSync(this.nodeLocation)){
+    if (!GLOBAL.skipCache && fs.existsSync(this.nodeLocation)){
       this._nodeJSON = fs.readJsonSync(this.nodeLocation);
 
-      this._populateTrackers(callback);
+      this._populateTrackers(false, callback);
 
     } else {
 
@@ -44,7 +44,7 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
 
         var cb = function(){
           that.persist();
-          that._populateTrackers(callback);
+          that._populateTrackers(true, callback);
           client.close();
         }
 
@@ -84,7 +84,7 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
     });
   },
 
-  _populateTrackers: function(callback){
+  _populateTrackers: function(persist, callback){
     var that = this;
     _.each(this._nodeJSON.trackers, function(trackerJSON, index, list){
       var trackerId = trackerJSON.id;
@@ -96,7 +96,9 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
           return;
         }
         that.addTracker(tracker);
-        tracker.persist();
+        if (persist){
+          tracker.persist();
+        }
       });
     });
 

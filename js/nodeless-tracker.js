@@ -23,12 +23,8 @@ var NodelessTracker = module.exports = new Class(RemoteTracker, {
     if (!GLOBAL.skipCache && fs.existsSync(this.trackerLocation)){
       this._trackerJSON = JSON.parse(fs.readFileSync(this.trackerLocation));
     } else {
-
       // correct old spec naming convention.
       this._trackerJSON = ttnSpecTools.fixKeys(trackerJSON);
-      console.log("this._trackerJSON = ",this._trackerJSON);
-
-      this.persist();
     }
 
     if (callback !== undefined){
@@ -55,8 +51,6 @@ var NodelessTracker = module.exports = new Class(RemoteTracker, {
         return callback("Unable to find thingSummaryJSON in tracker for thingId: " + thingId);
       }
 
-      console.log("thingSummaryJSON = ",thingSummaryJSON);
-
       if (thingSummaryJSON.refURL === undefined){
         log.warn("no reference URL to follow, return the summary in the hope it is enough.");
         // no reference URL to follow, return the summary in the hope it is enough.
@@ -78,7 +72,7 @@ var NodelessTracker = module.exports = new Class(RemoteTracker, {
             if (err) return log.warn("Error caching remote thing, ", err);
           });
 
-          callback(null, remoteThingJSON);
+          callback(null, cleanedRemoteThingJSON);
         } finally {
           client.close();
         }
