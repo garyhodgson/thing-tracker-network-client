@@ -5,7 +5,8 @@ var EventBus = new Class(EventEmitter, {
 
   events: {
     app: {
-      closeRequest: "closeRequest"
+      closeRequest: "app.closeRequest",
+      generatingKeys: "app.generatingKeys"
     },
     initialized: "initialized",
     dhtNode: {

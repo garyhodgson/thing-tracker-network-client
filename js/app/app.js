@@ -12,8 +12,9 @@ var app = angular.module('TTNClientApp', [
     'TTNClientApp.services',
     'TTNClientApp.controllers'
   ])
-
   .config(function($routeProvider, $locationProvider){
+
+    console.log(".config");
 
     global.eventbus = global.eventbus || new EventEmitter();
 
@@ -63,10 +64,25 @@ var app = angular.module('TTNClientApp', [
 
   .run(function(){
 
+    console.log(".run");
+
+    var splashwin;
+
+    eventbus.on(eventbus.generatingKeys, function(){
+      splashwin = gui.Window.open('./generatingKeys.html', {
+          'frame': false,
+          "toolbar": false,
+          'position': 'center',
+          'new-instance': true,
+          'always-on-top': true
+      });
+    });
+
     var win = gui.Window.get();
     tray = new gui.Tray({ title: 'TTN-Client', icon: 'img/trayicon.png', tooltip: 'TTN-Client' });
 
     onload = function() {
+      if (splashwin) splashwin.close(true);
       win.show();
     }
 

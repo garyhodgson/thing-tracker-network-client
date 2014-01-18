@@ -10,6 +10,8 @@ var logging = require('kadoh/lib/logging'),
 
 angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', '$timeout', '$sanitize', 'ttnNode','argv', 'urlRegExp', function($scope, $timeout, $sanitize, ttnNode, argv, urlRegExp) {
 
+  console.log("AppCtrl");
+
   process.on('uncaughtException', function(err) {
     if (console){
       console.log('UncaughtException', err);
