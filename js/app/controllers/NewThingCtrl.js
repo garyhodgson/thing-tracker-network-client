@@ -53,7 +53,14 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
     cleanThingJSON(deangularisedThingClone);
     cleanThingJSON(deangularisedThingClone);
 
-    $scope.tracker.createThing(deangularisedThingClone, $scope.files, $scope.thumbnails);
+    $scope.tracker.createThing(deangularisedThingClone, $scope.files, $scope.thumbnails, function(err, thing){
+      if (err){
+        return log.error(err);
+      }
+
+      log.info("New Thing created: " + thing.id)
+      $location.path( "/" );
+    });
 
   };
 

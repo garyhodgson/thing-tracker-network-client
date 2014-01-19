@@ -26,6 +26,20 @@
 
         <div class="meta row-fluid">
           <div class="span6">
+            <div id="home"><i class='icon-home' title="Repository"></i>&nbsp;<a ng-show="thing.url" title="{{thing.url}}" ng-click="navigateToURL(thing.url)" href="">{{thing.url|stripUrlProtocol|truncate:100:"&hellip;"}}</a></div>
+          </div>
+        </div>
+
+        <div class="meta row-fluid">
+          <div class="span6">
+            <div id="authors"><i class='icon-user' title="Authors"></i>&nbsp;
+                  <span ng-repeat="author in thing.authors"><span ng-hide='$index==0'>, </span>{{ author.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="meta row-fluid">
+          <div class="span6">
             <div id="tags">
               <i class="icon-tags" title="tags"></i>&nbsp;
                 <a ng-repeat="tag in thing.tags" href="#" class="tag"><span class="label">{{ tag }}</span>&nbsp;</a>
@@ -47,19 +61,6 @@
         </div>
 
         <div class="meta row-fluid">
-          <div class="span6">
-            <div id="home"><i class='icon-home' title="Repository"></i>&nbsp;<a ng-show="thing.url" title="{{thing.url}}" ng-click="navigateToURL(thing.url)" href="">{{thing.url|stripUrlProtocol|truncate:28:"&hellip;"}}</a></div>
-          </div>
-
-          <div class="span6">
-            <div id="authors"><i class='icon-user' title="Authors"></i>&nbsp;
-                  <span ng-repeat="author in thing.authors"><span ng-hide='$index==0'>, </span>{{ author.name }}</span>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="meta row-fluid">
 
           <div class="span6">
             <div id="licenses"><i class='icon-file' title="Licenses"></i>&nbsp;
@@ -67,11 +68,8 @@
             </div>
           </div>
           <div class="span6">
-            <span ng-hide="thing.isCachedLocally">
+            <span ng-show="thing.downloadURL">
               <div id="download"><i class='icon-download' title="Download"></i>&nbsp;<a href="" ng-click="downloadThing(thing)">Download</a></div>
-            </span>
-            <span ng-show="thing.isCachedLocally">
-              <div id="open"><i class='icon-folder-open' title="Open"></i>&nbsp;<a href="" ng-click="downloadThing(thing)">Show in Explorer</a></div>
             </span>
           </div>
         </div>

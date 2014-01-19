@@ -1,11 +1,24 @@
 var RemoteTTNNode = require('./js/remote-ttn-node');
 
-angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$timeout', 'ttnNode', function($scope, $timeout, ttnNode) {
+angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$timeout', '$rootScope', 'ttnNode', function($scope, $timeout, $rootScope, ttnNode) {
 
   $scope.thisNodeId = ttnNode.getNodeId();
   $scope.trackers = ttnNode.trackers;
   $scope.remoteNodes = ttnNode.remoteNodes;
   $scope.thingsSummary = [];
+
+  $scope.paginatedThingsSummary = [];
+  $scope.totalItems = 0;
+  $scope.currentPage = 1;
+  $scope.maxSize = 5;
+  $scope.numPerPage = 10;
+
+  $scope.setPage = function (pageNo) {
+    $scope.currentPage = pageNo;
+  };
+
+  $rootScope.currentTrackerId = $rootScope.currentTrackerId || undefined;
+  $rootScope.currentNodeId = $rootScope.currentNodeId || undefined;
 
   ttnNode.on(ttnNode.events.initialized, function(){
     console.log("ttnNode.events.initialized");
@@ -32,24 +45,25 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
     console.log(trackerId + " is online");
   });
 
+
   $scope.showRemoteTrackers = function(remoteNode){
     $timeout(function(){
-        $scope.trackers = remoteNode.getTrackers();
+      $rootScope.currentNodeId = remoteNode.nodeId;
+      $scope.trackers = remoteNode.getTrackers();
     });
   };
 
   $scope.showLocalTrackers = function(){
     $timeout(function(){
-        $scope.trackers = ttnNode.getLocalTrackers();
+      $rootScope.currentNodeId = $scope.thisNodeId;
+      $scope.trackers = ttnNode.getLocalTrackers();
     });
   };
 
   $scope.getRemoteTracker = function(nodeId, trackerId){
-    nodeId = nodeId.trim();
-    trackerId = trackerId.trim();
     ttnNode.getRemoteTrackerAsync(nodeId, trackerId, function(tracker){
       $timeout(function(){
-          $scope.trackers[tracker.id] = tracker;
+        $scope.trackers[tracker.id] = tracker;
       });
     });
   };
@@ -65,17 +79,36 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
     });
   };
 
+  $scope.onPageThings = function(page){
+    $scope.currentPage = page;
+    $scope.showThingsPage();
+  };
+
   $scope.showThings = function(tracker){
     if (tracker === undefined){
       log.error("Unable to show things as no tracker was given.");
       return;
     }
 
-    log.info("showing things for tracker with id " + tracker);
+    $rootScope.currentTrackerId = tracker.id;
 
-    $scope.thingsSummary.splice(0,$scope.thingsSummary.length);
+    $scope.currentTracker = tracker;
 
-    tracker.mapThingsSummary(function(thingSummary){
+    $scope.totalItems = tracker.getThingsSummaryCount();
+    $scope.currentPage = 1;
+
+    $scope.showThingsPage();
+
+  };
+
+  $scope.showThingsPage = function(){
+
+    $scope.thingsSummary = [];
+
+    var begin = (($scope.currentPage - 1) * $scope.numPerPage);
+    var end = begin + $scope.numPerPage;
+
+    $scope.currentTracker.mapThingsSummary(begin, end, function(thingSummary){
       $timeout(function(){
         $scope.thingsSummary.push(thingSummary);
       });
@@ -92,5 +125,19 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
       });
     });
   };
+
+  if ($rootScope.currentNodeId){
+    if ($rootScope.currentNodeId == $scope.thisNodeId){
+      $scope.showLocalTrackers();
+    } else {
+      $scope.showRemoteTrackers($scope.remoteNodes[$rootScope.currentNodeId]);
+    }
+
+    if ($rootScope.currentTrackerId){
+      $timeout(function(){
+        $scope.showThings($scope.trackers[$rootScope.currentTrackerId]);
+      });
+    }
+  }
 
 }])

@@ -14,8 +14,6 @@ var app = angular.module('TTNClientApp', [
   ])
   .config(function($routeProvider, $locationProvider){
 
-    console.log(".config");
-
     global.eventbus = global.eventbus || new EventEmitter();
 
     $routeProvider.when('/', {
@@ -63,8 +61,6 @@ var app = angular.module('TTNClientApp', [
   })
 
   .run(function(){
-
-    console.log(".run");
 
     var splashwin;
 

@@ -62,7 +62,7 @@ var Tracker = module.exports = new Class({
     this.persist();
   },
 
-  createThing: function(newThing, files, thumbnailPaths){
+  createThing: function(newThing, files, thumbnailPaths, callback){
 
     var that = this;
     var thingAddress = "/tracker/" + this.id + "/thing/" + newThing.id + "/version/" + newThing.version;
@@ -79,7 +79,7 @@ var Tracker = module.exports = new Class({
 
     fs.outputJson(thingLocation+"/thing.json", newThing, function(err){
       if (err){
-        return log.error(err);
+        return callback(err);
       }
       that.addThingSummaryToTracker({
         "id": newThing.id,
@@ -89,6 +89,8 @@ var Tracker = module.exports = new Class({
         "thumbnailURL": newThing.thumbnails[0]||"",
         "description": newThing.description
         });
+
+      callback(null, newThing);
     });
 
     fs.mkdirs(thingContentLocation, function(err){
@@ -146,6 +148,10 @@ var Tracker = module.exports = new Class({
     if (callback){
       callback(_.findWhere(this._trackerJSON.things, {'id':id}));
     }
+  },
+
+  getThingSummarySync: function(id){
+    return _.findWhere(this._trackerJSON.things, {'id':id});
   },
 
   getThingLatestVersion: function(id){
@@ -208,22 +214,30 @@ var Tracker = module.exports = new Class({
     return this._trackerJSON;
   },
 
-  mapThingsSummary: function(callback){
+  mapThingsSummary: function(begin, end, callback){
     if (this._trackerJSON === undefined){
       log.warn("Unable to map things summary - no JSON found for tracker: " + this.id)
       return;
     }
     var that = this;
 
-    _.each(this._trackerJSON.things, function(thing, index, list){
+    _.each(this._trackerJSON.things.slice(begin, end), function(thing, index, list){
       callback({
         trackerId: that.id,
         id: thing.id,
         title: thing.title,
-        summary: thing.summary,
+        summary: thing.description,
         thumbnailURL: thing.thumbnailURL||undefined
       });
     });
+  },
+
+
+  getThingsSummaryCount: function(){
+    if (!this._trackerJSON || !this._trackerJSON.things){
+      return 0
+    }
+    return this._trackerJSON.things.length;
   },
 
   getSubTracker: function(id){

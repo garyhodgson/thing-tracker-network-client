@@ -34,7 +34,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     this.remoteNodes = {};
 
     GLOBAL.dataPath = config.dataPath; // sigh
-    GLOBAL.skipCache = true;
+    GLOBAL.skipCache = false;
     if (GLOBAL.skipCache){
       log.warn("GLOBAL.skipCache = true")
     }
@@ -270,6 +270,10 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     }
   },
 
+  getNodeidForTrackerId: function(trackerId){
+    return this.trackerNodeIndex[trackerId];
+  },
+
   getExternalIPAddress: function(){
     return this.ttnNodeInfo.externalIPAddress;
   },
@@ -310,12 +314,11 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     return this.getExternalIPAddress() + ":" + this.config.dht.port;
   },
 
-  createNewTracker: function(newTrackerJSON){
+  createNewTracker: function(newTrackerJSON, callback){
     //NOTE: newTrackerJSON is not an instance of tracker.js, rather a JSON object from AngularJS
     var that = this;
     if (newTrackerJSON === undefined){
-      log.error("Attempt to create new tracker with undefined values.");
-      return;
+      return callback("Attempt to create new tracker with undefined values.");
     }
 
     var shasum = Crypto.createHash('sha1');
@@ -358,8 +361,10 @@ var TTNNode = module.exports = new Class(EventEmitter, {
 
     var tracker = new Tracker(GLOBAL.dataPath+ "/tracker/" + newId+"/tracker.json", function(t){
       that.addTracker(t);
-      that.trackerNodeIndex[trackerId] = that.nodeId;
+      that.trackerNodeIndex[t.id] = that.nodeId;
     })
+
+    callback(null, tracker);
   },
 
   stats: function(){

@@ -4,6 +4,9 @@ var Class = require('jsclass/src/core').Class,
 var EventBus = new Class(EventEmitter, {
 
   events: {
+    warning: "warning",
+    error: "error",
+    info: "info",
     app: {
       closeRequest: "app.closeRequest",
       generatingKeys: "app.generatingKeys"

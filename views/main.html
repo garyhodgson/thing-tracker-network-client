@@ -60,6 +60,7 @@
       <datalist id="testTrackerURLs">
         <option value="http://garyhodgson.com/thingtracker.service/">
         <option value="http://www.bld3r.com/thingtracker">
+        <option value="http://reprap.development-tracker.info/thingtracker">
       </datalist>
     </form>
   </div>
@@ -68,14 +69,17 @@
 
   <div class="span8">
     <h3>Things</h3>
+    <pagination ng-show="totalItems > numPerPage" total-items="totalItems" on-select-page="onPageThings(page)" items-per-page="numPerPage" page="currentPage" max-size="maxSize" class="pagination-sm" boundary-links="true" rotate="false"></pagination>
     <ul class="thing-list">
       <li ng-repeat="thing in thingsSummary track by $index">
         <img class="pull-left thumbnail" width="50" ng-show="thing.thumbnailURL" ng-src="{{ resourcePath(thing.thumbnailURL) }}">
         <h4><a href="#/tracker/{{ thing.trackerId }}/thing/{{ thing.id }}">{{ thing.title }}</a></h4>
-        <p>{{ thing.summary }}</p>
+        <p ng-bind-html="thing.summary | nl2br"></p>
         <hr>
       </li>
     </ul>
+
+
 
   </div>
 </div>

@@ -9,7 +9,9 @@ var Class = require('jsclass/src/core').Class,
     http = require("http"),
     unzip = require("unzip"),
     Crypto = require("crypto"),
-    fstream = require("fstream");
+    fstream = require("fstream"),
+    url = require("url"),
+    urlRegExp = require('./util/urlRegExp');
 
 var RemoteTracker = module.exports = new Class(Tracker, {
 
@@ -91,39 +93,66 @@ var RemoteTracker = module.exports = new Class(Tracker, {
   getThing: function(thingId, version, callback){
     var that = this;
     version = version || this.getThingLatestVersion(thingId);
-    var thingURL = '/tracker/'+this.id+'/thing/'+thingId+'/version/'+version;
 
-    var cachedThingLocation = GLOBAL.dataPath + "/cache/node/"+this.nodeId+thingURL + "/thing.json";
-
+    var cachedThingURL = '/tracker/'+this.id+'/thing/'+thingId + '/version/'+version;
+    var cachedThingLocation = GLOBAL.dataPath + "/cache/node/"+this.nodeId+cachedThingURL + "/thing.json";
     if (fs.existsSync(cachedThingLocation)){
-      var thingJSON = JSON.parse(fs.readFileSync(cachedThingLocation));
-      if (callback !== undefined){
-          callback(null, thingJSON);
-        }
+      log.info("Returning cached thing for : " +cachedThingURL)
+      callback(null, JSON.parse(fs.readFileSync(cachedThingLocation)));
+    }
+
+    var thingSummary = this.getThingSummarySync(thingId);
+
+    if (thingSummary && thingSummary.refURL){
+      this._getThingByRefURL(thingSummary.refURL, thingId, cachedThingLocation, callback);
+    } else {
+      var thingURL = '/tracker/'+this.id+'/thing/'+thingId + (version?'/version/'+version : '');
+      this._getThingByRefURL(thingURL, thingId, cachedThingLocation, callback);
+    }
+  },
+
+  _getThingByRefURL: function(refURL, thingId, cachedThingLocation, callback){
+    var absoluteURL = urlRegExp.test(refURL);
+
+    if (absoluteURL){
+      var parsedURL = url.parse(refURL);
+      var restURL = parsedURL.protocol + '//' + parsedURL.host;
+      this._getThingByURL(restURL, parsedURL.path, cachedThingLocation, callback);
     } else {
       if (this.remoteNodeInfo === undefined){
-        return log.warn("Unable to get Thing as remoteNodeInfo is undefined. ID = " + thingId);
+        return callback("Unable to get Thing as remoteNodeInfo is undefined. ID = " + thingId);
       }
       var protocol = this.remoteNodeInfo.restProtocol || 'http';
-      var client = restify.createJsonClient({url: protocol+'://' + this.remoteNodeInfo.restAddress});
-
-      var cb = function(thingJSON){
-        if (callback !== undefined){
-          callback(null, thingJSON);
-        }
-        client.close();
-      };
-
-      client.get(thingURL, function(err, req, res, thingJSON) {
-        if (err) {return callback(err);}
-
-        fs.outputJson(cachedThingLocation, thingJSON, function(err){
-          if (err) {return log.warn("Error caching remote thing, ", err);}
-        });
-
-        cb(thingJSON);
-      });
+      var restURL = protocol + '://' + this.remoteNodeInfo.restAddress;
+      this._getThingByURL(restURL, refURL, cachedThingLocation, callback);
     }
+  },
+
+  _getThingByURL: function(restURL, path, cachedThingLocation, callback){
+
+    console.log(restURL, path);
+
+    var client = restify.createJsonClient({url: restURL});
+
+    var cb = function(thingJSON){
+      callback(null, thingJSON);
+      client.close();
+    };
+
+    client.get(path, function(err, req, res, thingJSON) {
+      if (err) {
+        return callback(err);
+      }
+
+      fs.outputJson(cachedThingLocation, thingJSON, function(err){
+        if (err) {
+          eventbus.emit(eventbus.events.warning, "Error caching remote thing, " + err);
+          log.error("Error caching remote thing, ", err);
+        }
+      });
+
+      cb(thingJSON);
+    });
   },
 
   createThing: function(newThing, files, thumbnailPaths){
@@ -157,12 +186,10 @@ var RemoteTracker = module.exports = new Class(Tracker, {
      return log.error("Tracker has no remoteNodeinfo.");
     }
 
-    //TODO - fix to use rest server + protocol
-    var url = 'http://' + remoteNodeinfo.restAddress+thing.downloadURL;
+    var protocol = this.remoteNodeInfo.restProtocol || 'http';
+    var restURL = protocol + '://' + remoteNodeinfo.restAddress+thing.downloadURL;
 
-    console.log("url = ",url);
-
-    var filename=path.basename(url);
+    var filename=path.basename(restURL);
     var filenameExt = path.extname(filename);
 
     if (filenameExt != ".zip"){
@@ -181,7 +208,7 @@ var RemoteTracker = module.exports = new Class(Tracker, {
 
     var outputDirStream = fstream.Writer(cacheContentLocation);
 
-    var request = http.get(url, function(response) {
+    var request = http.get(restURL, function(response) {
 
       if (response.statusCode == 200){
         // Unpack the zip locally (commented out as it might be dangerous)

@@ -10,11 +10,9 @@ var logging = require('kadoh/lib/logging'),
 
 angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', '$timeout', '$sanitize', 'ttnNode','argv', 'urlRegExp', function($scope, $timeout, $sanitize, ttnNode, argv, urlRegExp) {
 
-  console.log("AppCtrl");
-
   process.on('uncaughtException', function(err) {
     if (console){
-      console.log('UncaughtException', err);
+      console.log('UncaughtException', err.message, err);
       console.log('Shutting down TTN Node');
     }
     if (ttnNode){
@@ -24,6 +22,16 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
         }
       });
     }
+  });
+
+  eventbus.on(eventbus.events.warning, function(message){
+    log.warn(message);
+  })
+  .on(eventbus.events.info, function(message){
+    log.info(message);
+  })
+  .on(eventbus.events.error, function(message){
+    log.error(message);
   });
 
   eventbus.on(eventbus.events.app.closeRequest, function(callback){
