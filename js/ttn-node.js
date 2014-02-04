@@ -10,11 +10,12 @@ var Tracker = require('./tracker'),
     fs = require('fs-extra'),
     Class = require('jsclass/src/core').Class,
     EventEmitter = require('events').EventEmitter,
-    log = require('kadoh/lib/logging').ns('TTNNode'),
     Crypto = require("crypto"),
     eventbus = require('./event-bus'),
+    log = require('kadoh/lib/logging').ns('TTNNode'),
     extIP = require("./util/extIP");
 
+var log;
 var TTNNode = module.exports = new Class(EventEmitter, {
 
   events: {

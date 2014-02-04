@@ -13,16 +13,10 @@ angular.module('TTNClientApp.services', [])
 )
 
 .factory('argv', function(){
-  console.log("argv");
   return optimist.parse(gui.App.argv);
 })
 
 .factory('ttnConfig', ['argv', function(argv){
-
-  console.log("ttnConfig");
-
-  var exeRootDir = path.dirname(process.execPath);
-  console.log("exeRootDir: "+exeRootDir);
 
   var homeDir = process.env.USERPROFILE || process.env.HOME || process.env.HOMEPATH;
   var ttnHomeDir = path.normalize(homeDir + "/.ttn");

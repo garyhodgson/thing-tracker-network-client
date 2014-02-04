@@ -5,6 +5,7 @@ var Class = require('jsclass/src/core').Class,
     log = require('kadoh/lib/logging').ns('Tracker'),
     async = require("async"),
     admzip = require('adm-zip'),
+    backgrounder = require("backgrounder"),
     path = require("path");
 
 var Tracker = module.exports = new Class({
@@ -62,7 +63,7 @@ var Tracker = module.exports = new Class({
     this.persist();
   },
 
-  createThing: function(newThing, files, thumbnailPaths, callback){
+  updateThing: function(newThing, files, thumbnailPaths, callback){
 
     var that = this;
     var thingAddress = "/tracker/" + this.id + "/thing/" + newThing.id + "/version/" + newThing.version;
@@ -81,15 +82,16 @@ var Tracker = module.exports = new Class({
       if (err){
         return callback(err);
       }
-      that.addThingSummaryToTracker({
-        "id": newThing.id,
-        "title": newThing.title,
-        "latestVersion": newThing.version,
-        "versions": [newThing.version],
-        "thumbnailURL": newThing.thumbnails[0]||"",
-        "description": newThing.description
-        });
-
+      if (newThing.isNew){
+        that.addThingSummaryToTracker({
+          "id": newThing.id,
+          "title": newThing.title,
+          "latestVersion": newThing.version,
+          "versions": [newThing.version],
+          "thumbnailURL": newThing.thumbnails[0]||"",
+          "description": newThing.description
+          });
+      }
       callback(null, newThing);
     });
 
@@ -114,11 +116,20 @@ var Tracker = module.exports = new Class({
         if (err) {
           return log.error("File copy error: " + err);
         }
+        log.info("Zipping content store");
 
-        var zip = new admzip();
-        var realPath = fs.realpathSync(thingContentLocation);
-        zip.addLocalFolder(realPath);
-        zip.writeZip(thingZipLocation);
+        var worker = backgrounder.spawn(__dirname + "/zipper.js")
+        worker.send({
+            "thingContentLocation": thingContentLocation,
+            "thingZipLocation": thingZipLocation
+          }, function(err, realPath){
+            if (err){
+              log.error(err);
+            } else {
+              log.info("Zipping finished. ", realPath);
+            }
+            worker.terminate();
+        });
 
       });
     });
@@ -132,8 +143,12 @@ var Tracker = module.exports = new Class({
         if (!fs.existsSync(thumbnailPath)){
           return onErrorCallback("Could not find thumbnail: " + thumbnailPath);
         }
+        var targetThumbnailPath = thingThumbnailsLocation + path.basename(thumbnailPath);
+        if(thumbnailPath == targetThumbnailPath){
+          return;
+        }
 
-        fs.copy(thumbnailPath, thingThumbnailsLocation + path.basename(thumbnailPath), function(err){
+        fs.copy(thumbnailPath, targetThumbnailPath, function(err){
           if (err) {
             onErrorCallback("Could not copy thumbnail: "+ thumbnailPath + ", err: " + err);
           }
@@ -225,6 +240,7 @@ var Tracker = module.exports = new Class({
       callback({
         trackerId: that.id,
         id: thing.id,
+        remote: that.remote,
         title: thing.title,
         summary: thing.description,
         thumbnailURL: thing.thumbnailURL||undefined

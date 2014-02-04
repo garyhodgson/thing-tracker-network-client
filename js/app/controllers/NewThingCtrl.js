@@ -17,19 +17,33 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
   $scope.files = [];
   $scope.thumbnails = [];
 
-  $scope.newThing = {
-    id: newId,
-    title: "",
-    version: "",
-    description: "",
-    licenses: [],
-    tags: [],
-    url: "",
-    authors: [],
-    billOfMaterials: [],
-    instructions: [],
-    relationships: []
-  };
+  $scope.editedThing = {};
+
+  if ($routeParams.thingId !== undefined){
+    $scope.editedThing = $scope.tracker.getThingSync($routeParams.thingId);
+    $scope.editedThing.isNew = false;
+
+    _.each($scope.editedThing.thumbnails, function(value, index, list){
+      $scope.thumbnails.push($scope.dataPath + value);
+    });
+  } else {
+    $scope.editedThing.isNew = true;
+  }
+
+  _.defaults($scope.editedThing, {
+      id: newId,
+      title: "",
+      version: "",
+      description: "",
+      licenses: [],
+      tags: [],
+      url: "",
+      authors: [],
+      billOfMaterials: [],
+      instructions: [],
+      relationships: []
+    });
+
 
   function cleanThingJSON(localThing){
    _.each(localThing, function(v,k){
@@ -43,26 +57,28 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
     })
   }
 
-  $scope.createThing = function(){
+  $scope.saveThing = function(){
     var now = new Date();
-    this.newThing.created = this.newThing.updated = now.toJSON();
+    this.editedThing.updated = now.toJSON();
 
-    var deangularisedThingClone = angular.fromJson(angular.toJson(this.newThing));
+    var deangularisedThingClone = angular.fromJson(angular.toJson(this.editedThing));
+
+    this.editedThing = deangularisedThingClone
 
     //Run twice to clear 2 levels of possble empty objects, e.g. xInstructionMetadata.note
-    cleanThingJSON(deangularisedThingClone);
-    cleanThingJSON(deangularisedThingClone);
+    cleanThingJSON(this.editedThing);
+    cleanThingJSON(this.editedThing);
 
-    $scope.tracker.createThing(deangularisedThingClone, $scope.files, $scope.thumbnails, function(err, thing){
+    $scope.tracker.updateThing(this.editedThing, $scope.files, $scope.thumbnails, function(err, thing){
       if (err){
         return log.error(err);
       }
+      log.info("Thing update: " + thing.id)
 
-      log.info("New Thing created: " + thing.id)
-      $location.path( "/" );
+      $location.path( "/tracker/" + $scope.tracker.id + "/thing/" + thing.id);
     });
 
-  };
+  }
 
   $scope.thumbnailFilesChanged = function(files) {
     this.thumbnails  = files.split(";");
@@ -89,11 +105,11 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
       $scope.files.push({sourcePath:sourcePath, targetPath: targetFilepath});
 
       var urlTargetFilePath =  targetFilepath.replace("\\", "/");
-      var url = "/tracker/" + $scope.tracker.id + "/thing/" + $scope.newThing.id + "/version/"+$scope.newThing.version+"/content/" + urlTargetFilePath;
+      var url = "/tracker/" + $scope.tracker.id + "/thing/" + $scope.editedThing.id + "/version/"+$scope.editedThing.version+"/content/" + urlTargetFilePath;
 
-      $scope.newThing.billOfMaterials.push({
+      $scope.editedThing.billOfMaterials.push({
         "$isContentFile": true,
-        "partNumber": $scope.newThing.billOfMaterials.length+1,
+        "partNumber": $scope.editedThing.billOfMaterials.length+1,
         "url": url,
         "description": urlTargetFilePath,
         "quantity": 1,
@@ -130,16 +146,16 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
 
 
   $scope.addAuthor = function(){
-    this.newThing.authors.push({"name": "", "email": "", "web": ""});
+    this.editedThing.authors.push({"name": "", "email": "", "web": ""});
   };
 
   $scope.removeAuthor = function(index){
-    this.newThing.authors.splice(index,1);
+    this.editedThing.authors.splice(index,1);
   };
 
   $scope.addMaterial = function(){
-    this.newThing.billOfMaterials.push({
-        "partNumber": this.newThing.billOfMaterials.length+1,
+    this.editedThing.billOfMaterials.push({
+        "partNumber": this.editedThing.billOfMaterials.length+1,
         "description": "",
         "quantity": "",
         "unit": "",
@@ -150,7 +166,7 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
   };
 
   $scope.removeMaterial = function(index){
-    var material = this.newThing.billOfMaterials[index];
+    var material = this.editedThing.billOfMaterials[index];
 
     var materialIsContentFile = material["$isContentFile"] === true;
     if (materialIsContentFile){
@@ -162,16 +178,16 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
       });
     }
 
-    this.newThing.billOfMaterials.splice(index,1);
+    this.editedThing.billOfMaterials.splice(index,1);
 
-    _.each(this.newThing.billOfMaterials, function(item, index, list){
+    _.each(this.editedThing.billOfMaterials, function(item, index, list){
       item.partNumber = index+1;
     });
   };
 
   $scope.addInstruction = function(){
-    this.newThing.instructions.push({
-        "step": this.newThing.instructions.length+1,
+    this.editedThing.instructions.push({
+        "step": this.editedThing.instructions.length+1,
         "text": "",
         "xInstructionMetadata":{
           "note": ""
@@ -180,18 +196,18 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
   };
 
   $scope.removeInstruction = function(index){
-    this.newThing.instructions.splice(index,1);
+    this.editedThing.instructions.splice(index,1);
   };
 
   $scope.addRelationship = function(){
-    this.newThing.relationships.push({
+    this.editedThing.relationships.push({
         "description": "",
         "url": ""
       });
   };
 
   $scope.removeRelationship = function(index){
-    this.newThing.relationships.splice(index,1);
+    this.editedThing.relationships.splice(index,1);
   };
 
 }])

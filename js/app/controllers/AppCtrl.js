@@ -11,17 +11,21 @@ var logging = require('kadoh/lib/logging'),
 angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', '$timeout', '$sanitize', 'ttnNode','argv', 'urlRegExp', function($scope, $timeout, $sanitize, ttnNode, argv, urlRegExp) {
 
   process.on('uncaughtException', function(err) {
+    if (log){
+      log.error('UncaughtException', err.message, err);
+    }
     if (console){
       console.log('UncaughtException', err.message, err);
-      console.log('Shutting down TTN Node');
+    //console.log('Shutting down TTN Node');
     }
-    if (ttnNode){
+    // tmp turn off
+    /*if (ttnNode){
       ttnNode.shutdown(function(){
         if (console){
           console.log('TTN Node shutdown.');
         }
       });
-    }
+    }*/
   });
 
   eventbus.on(eventbus.events.warning, function(message){
@@ -71,7 +75,20 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
   });
 
   $scope.navigateToURL = function(url){
-    gui.Shell.openExternal(url);
+
+    if (/^mailto:/.test(url)){
+      gui.Shell.openExternal(url);
+    } else if (urlRegExp.test(url)) {
+
+      if (! /^http/.test(url)){
+        url = "http://"+url;
+      }
+
+      gui.Shell.openExternal(url);
+
+    } else {
+      log.warn("Unable to navigate to url: " + url);
+    }
   };
 
   $scope.resourcePath = function(itemLocation){

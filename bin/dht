@@ -126,6 +126,8 @@ function launchPools() {
                                   ' max:'+ maxs[pool] +
                                   ' avg:' + Math.ceil(means[pool]) +
                                   ')    ');
+    } else {
+      console.log(data.toString());
     }
   };
 
@@ -133,6 +135,8 @@ function launchPools() {
     data = String(data);
     if (!/StringPrep/.test(data)) {
       process.stderr.write(String(data));
+    } else {
+      console.error(data);
     }
   };
 

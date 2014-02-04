@@ -38,6 +38,7 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
         return;
       }
       $scope.thing = thing;
+      $scope.thing.trackerId = trackerId;
       console.log("$scope.thing = ",$scope.thing);
     });
 

@@ -1,7 +1,8 @@
 //
 // Bot
 //
-var Node = require("../../js/ttn-node");
+var Node = require("../../js/ttn-kadoh-node");
+//var Node = require('kadoh/lib/node');
 var SHA1 = require('kadoh/lib/util/crypto').digest.SHA1;
 var logging = require('kadoh/lib/logging');
 var ConsoleLogger = require('kadoh/lib/logger/reporter/color-console')
@@ -16,6 +17,7 @@ var Bot = exports.Bot = function(options) {
     activity   : false,
     values     : 10
   };
+  options.node.name = options.name;
   options.node.reactor = options.node.reactor || {};
   options.node.reactor.transport = options.node.reactor.transport || {};
   options.node.reactor.transport.reconnect = true;

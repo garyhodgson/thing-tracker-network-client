@@ -109,6 +109,8 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
     var end = begin + $scope.numPerPage;
 
     $scope.currentTracker.mapThingsSummary(begin, end, function(thingSummary){
+      console.log(thingSummary);
+
       $timeout(function(){
         $scope.thingsSummary.push(thingSummary);
       });
@@ -124,6 +126,10 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
         $scope.remoteNodes = ttnNode.remoteNodes;
       });
     });
+  };
+
+  $scope.announce = function(message){
+    ttnNode.dhtNode.ttnKadohNode.announce(message);
   };
 
   if ($rootScope.currentNodeId){

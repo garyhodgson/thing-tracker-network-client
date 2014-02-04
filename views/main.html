@@ -39,13 +39,16 @@
             <p ng-hide="tracker.verified">Not Verified!</p>
             <h4 ng-show="tracker.online"><a ng-click="updateTracker(id)" href="">update</a></h4>
           </div>
-          <h4 ng-hide="tracker.remote"><a href="#/app/tracker/{{id}}/thing/new">new thing</a></h4>
+          <div ng-hide="tracker.remote">
+            <h4><a href="#/app/tracker/{{id}}/thing/new">new thing</a></h4>
+          </div>
           <hr>
       </li>
     </ul>
 
     <h4>testing...</h4>
     <div>
+    <h4><a href="" ng-click="announce('hello')">Announce("hello")</a></h4>
     <h4><a href="#/app/tracker/new">New Tracker</a></h4>
 
     <form name="trackersForm">
@@ -75,6 +78,9 @@
         <img class="pull-left thumbnail" width="50" ng-show="thing.thumbnailURL" ng-src="{{ resourcePath(thing.thumbnailURL) }}">
         <h4><a href="#/tracker/{{ thing.trackerId }}/thing/{{ thing.id }}">{{ thing.title }}</a></h4>
         <p ng-bind-html="thing.summary | nl2br"></p>
+        <div ng-hide="thing.remote">
+          <p><a href="#/app/tracker/{{thing.trackerId}}/thing/{{thing.id}}/edit">Edit</a></p>
+        </div>
         <hr>
       </li>
     </ul>

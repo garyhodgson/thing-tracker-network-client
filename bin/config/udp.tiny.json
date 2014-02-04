@@ -1,16 +1,14 @@
 {
   "botType"  : "udp",
-  "poolSize" : 50,
+  "poolSize" : 10,
   "speed"    : 3,
-  "size"     : 1,
+  "size"     : 3,
   "activity" : 0,
   "values"   : 0,
-  "port"     : 10000,
+  "port"     : 5100,
   "starter"  : false,
   "reporter" : false,
   "bootstraps" : [
-    "127.0.0.1:3000",
-    "127.0.0.1:3001",
-    "127.0.0.1:3002"
+    "127.0.0.1:3001"
   ]
 }

@@ -1,27 +1,28 @@
 <div class="row-fluid">
 
-  <h4>New Thing</h4>
 
-  <form name="newThingForm" ng-submit="createThing()">
-    <input ng-model="newThing.id" name="id" type="hidden">
+  <h4><span ng-show="editedThing.isNew">New</span><span ng-hide="editedThing.isNew">Edit</span> Thing</h4>
+
+  <form name="editedThingForm" ng-submit="saveThing()">
+    <input ng-model="editedThing.id" name="id" type="hidden">
 
     Tracker: <input ng-model="tracker._trackerJSON.title" readonly type="text">
     <br>
-    Title<small>*</small>: <input ng-model="newThing.title" name="title" type="text" required>
-    <span class="error" ng-show="newThingForm.title.$error.required">Required!</span>
+    Title<small>*</small>: <input ng-model="editedThing.title" name="title" type="text" required>
+    <span class="error" ng-show="editedThingForm.title.$error.required">Required!</span>
     <br>
-    Version<small>*</small>: <input ng-model="newThing.version" name="version" type="text" ng-pattern="/^[_\w\-\.\s]+$/" required>
-    <span class="error" ng-show="newThingForm.version.$error.required">Required!</span>
-    <span class="error" ng-show="newThingForm.version.$error.pattern">Only letters, numbers, period, space, dash and underscore are allowed.</span>
+    Version<small>*</small>: <input ng-model="editedThing.version" name="version" type="text" ng-pattern="/^[_\w\-\.\s]+$/" required>
+    <span class="error" ng-show="editedThingForm.version.$error.required">Required!</span>
+    <span class="error" ng-show="editedThingForm.version.$error.pattern">Only letters, numbers, period, space, dash and underscore are allowed.</span>
     <br>
-    Description: <textarea ng-model="newThing.description"></textarea>
+    Description: <textarea ng-model="editedThing.description"></textarea>
     <br>
-    Homepage: <input ng-model="newThing.url" name="homepage" type="url">
-    <span class="error" ng-hide="newThingForm.homepage.$valid">URL Expected!</span>
+    Homepage: <input ng-model="editedThing.url" name="homepage" type="url">
+    <span class="error" ng-hide="editedThingForm.homepage.$valid">URL Expected!</span>
     <br>
-    License(s): <input ng-list ng-model="newThing.licenses" type="text">
+    License(s): <input ng-list ng-model="editedThing.licenses" type="text">
     <br>
-    Tags: <input ng-list ng-model="newThing.tags" type="text">
+    Tags: <input ng-list ng-model="editedThing.tags" type="text">
     <br>
     Thumbnails:
     <input type="button" onclick="document.querySelector('#thumbnailChooser').click()" value="Select Thumbnails...">
@@ -44,7 +45,7 @@
           <th>Web</th>
           <th></th>
         </tr>
-        <tr ng-repeat="author in newThing.authors">
+        <tr ng-repeat="author in editedThing.authors">
           <td><input ng-model="author.name" type="text"></td>
           <td><input ng-model="author.email" type="text"></td>
           <td><input ng-model="author.web" type="text"></td>
@@ -64,7 +65,7 @@
           <th>Note</th>
           <th></th>
         </tr>
-        <tr ng-repeat="material in newThing.billOfMaterials">
+        <tr ng-repeat="material in editedThing.billOfMaterials">
           <td><input id="partNumber" ng-model="material.partNumber" type="text" readonly></td>
           <td><input ng-model="material.description" type="text" ng-readonly="material.$isContentFile"></td>
           <td><input id="quantity" ng-model="material.quantity" type="text"></td>
@@ -89,7 +90,7 @@
           <th>Note</th>
           <th></th>
         </tr>
-        <tr ng-repeat="instruction in newThing.instructions">
+        <tr ng-repeat="instruction in editedThing.instructions">
           <td><input ng-model="instruction.step" type="text" value="{{$index+1}}"></td>
           <td><input ng-model="instruction.text" type="text"></td>
           <td><input ng-model="instruction.xInstructionMetadata.note" type="text"></td>
@@ -107,7 +108,7 @@
           <th>Description</th>
           <th></th>
         </tr>
-        <tr ng-repeat="relationship in newThing.relationships">
+        <tr ng-repeat="relationship in editedThing.relationships">
             <td><input ng-model="relationship.url" type="text"/></td>
             <td><input ng-model="relationship.description" type="text"/></td>
             <td><input type="button" ng-click="removeRelationship($index)" value="Remove"></td>
@@ -116,7 +117,6 @@
       <input type="button" ng-click="addRelationship()" value="Add">
     </fieldset>
 
-
-    <input type="submit" id="submit" value="Create" ng-disabled="!newThingForm.$valid"/>
+    <input type="submit" id="submit" value="Save" ng-disabled="!editedThingForm.$valid"/>
   </form>
 </div>

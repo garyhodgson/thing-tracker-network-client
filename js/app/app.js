@@ -27,7 +27,12 @@ var app = angular.module('TTNClientApp', [
     });
 
     $routeProvider.when('/app/tracker/:trackerId/thing/new', {
-      templateUrl: 'views/thing/new.html',
+      templateUrl: 'views/thing/edit.html',
+      controller: 'NewThingCtrl'
+    });
+
+    $routeProvider.when('/app/tracker/:trackerId/thing/:thingId/edit', {
+      templateUrl: 'views/thing/edit.html',
       controller: 'NewThingCtrl'
     });
 

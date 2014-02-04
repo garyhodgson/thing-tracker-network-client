@@ -4,6 +4,9 @@
 // TTN Bot
 //
 
+var ConsoleLogger = require('kadoh/lib/logger/reporter/color-console')
+var logging = require('kadoh/lib/logging');
+
 process.listening = true;
 
 var argv  = require('optimist')
@@ -12,14 +15,16 @@ var argv  = require('optimist')
             .describe('b', 'comma separated list of bootstraps')
             .alias('l', 'log')
             .describe('l', 'log level (debug, info, warn, error, fatal)')
-            .alias('c', 'cli')
-            .describe('c', 'start repl')
             .alias('p', 'port')
             .describe('p', 'port')
             .alias('i', 'id')
             .describe('i', 'id to assign the node, otherwise one is generated')
             .alias('h', 'help')
             .describe('h', 'help')
+            .alias('d', 'data')
+            .describe('d', 'path where data is stored.')
+            .alias('n', 'name')
+            .describe('n', 'bot name')
             .argv;
 
 if (argv.h){
@@ -27,33 +32,24 @@ if (argv.h){
   return
 }
 
-var bootstraps = argv.b||'127.0.0.1:3001'
 var config = {
-  name : 'ttnbot',
-  id : argv.i||null,
-  loglevel : argv.l||'info',
-  node : {
-    bootstraps : bootstraps.split(','),
-    persistence: {
-      type: 'memory'
-    },
-    reactor : {
-      protocol  : 'jsonrpc2',
-      transport : {
-        port      : parseInt(argv.port, 10) || 10000,
-        reconnect : true
-      }
-    }
+  "nodeName":argv.n || "Bot1",
+  "dht": {
+    "bootstraps" : [argv.b||'127.0.0.1:3001'],
+    "port": parseInt(argv.port, 10) || 10000,
   },
-  activity   : false
+  "RESTServer" : {
+    "port": parseInt(argv.port, 10) || 10000,
+  },
+  "startup" : {
+    "joinDHT" : "true",
+    "startRESTServer" : "true"
+  },
+  "dataPath": argv.d
 };
 
-process.env.KADOH_TRANSPORT = 'udp';
+new ConsoleLogger(logging, argv.l||'info');
 
-var TTNBot = require('./bots/ttn-bot').TTNBot;
-var bot = new TTNBot(config);
-bot.start();
+var TTNNode = require("../js/ttn-node");
 
-if (argv.cli) {
-  require('repl').start('> ').context.node = bot.node;
-}
+var bot = new TTNNode(config);

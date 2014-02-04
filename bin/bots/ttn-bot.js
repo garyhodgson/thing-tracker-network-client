@@ -11,18 +11,7 @@ var TTNBot = exports.TTNBot = function(options) {
 
   new ConsoleLogger(logging, options.loglevel||'info');
 
-  options = this._options = options || {
-    node       : {},
-    delay      : undefined,
-    name       : 'ttnbot',
-    activity   : false,
-    values     : 10
-  };
-  options.node.reactor = options.node.reactor || {};
-  options.node.reactor.transport = options.node.reactor.transport || {};
-  options.node.reactor.transport.reconnect = true;
-
-  this.node = new TTNNode(options.id, options.node);
+  this.node = new TTNNode(options);
 };
 
 TTNBot.prototype.start = function() {

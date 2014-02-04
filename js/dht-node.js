@@ -1,60 +1,10 @@
 var Class = require('jsclass/src/core').Class,
     kadoh = require("kadoh"),
     _ = require("lodash"),
+    TTNKadohNode = require("./ttn-kadoh-node.js"),
     Crypto = require("crypto"),
-		GetTTNNodeInfoRPC = require('./rpc/getttnnodeinfo.js'),
     EventEmitter = require('events').EventEmitter,
     log = require('kadoh/lib/logging').ns('DHTNode');
-
-/**
-  TTNKadohNode extends the kadoh node class, which uses the klass library.
-  Further down is the DHTNode class definition which uses an instance of TTNKadohNode.
-*/
-
-var TTNKadohNode = kadoh.logic.KademliaNode.extend({
-
-  initialize: function(id, options, ttnNodeInfo) {
-    this.supr(id, options);
-    console.log("ttnNodeInfo.externalIPAddress = ",ttnNodeInfo.externalIPAddress);
-    this.ttnNodeInfo = ttnNodeInfo;
-    this._reactor.register({
-      GET_TTN_NODE_INFO : GetTTNNodeInfoRPC
-    });
-  },
-
-  getTTNNodeInfo: function(address, id, callback, context){
-
-    context = context || this;
-    var peer = new Peer(address, id);
-    var getTTNNodeInfoRPC = new GetTTNNodeInfoRPC(peer);
-
-    getTTNNodeInfoRPC.then(function(ttnNode) {
-      if (callback) callback.call(context, ttnNode);
-    }, function(a) {
-      if (callback) callback.call(context, null);
-    });
-
-    this._reactor.sendRPC(getTTNNodeInfoRPC)
-
-    return this;
-  },
-
-  handleGET_TTN_NODE_INFO: function(rpc) {
-    var ttnNodeInfo = {
-      "nodeId":this.getID(),
-      "restAddress":this.getAddress().replace('0.0.0.0','127.0.0.1'),
-      "restProtocol": this.ttnNodeInfo.restProtocol
-    };
-
-    if (this.ttnNodeInfo && this.ttnNodeInfo.nodeKeys){
-      ttnNodeInfo.publicKey = this.ttnNodeInfo.nodeKeys.getPublicKey();
-      var signature = this.ttnNodeInfo.nodeKeys.sign(JSON.stringify(ttnNodeInfo));
-      ttnNodeInfo.nodeIdPublicKeySignature = signature;
-    }
-
-    rpc.resolve(ttnNodeInfo);
-  },
-});
 
 var DHTNode = module.exports = new Class(EventEmitter, {
 

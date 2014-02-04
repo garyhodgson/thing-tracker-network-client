@@ -13,3 +13,9 @@ node._routingTable._kbuckets[0].array
 node.findNode('f168339df29aa3eda5c711752693b2673ce1938b', function(){console.log(arguments);})
 
 node.getTracker('127.0.0.1:10000', 'f168339df29aa3eda5c711752693b2673ce1938b', function(){console.log(arguments);})
+
+
+t.dhtNode.ttnKadohNode.ping('127.0.0.1:9880','5cef3fdb7ab729a0360f3a85d349b41397a09bfb', function(){console.log(arguments)})
+
+
+t.dhtNode.ttnKadohNode.ping('ec2-54-234-89-153.compute-1.amazonaws.com:10101','03810f48b76dea84a550d7b5e874786631f98447', function(){console.log(arguments)})
