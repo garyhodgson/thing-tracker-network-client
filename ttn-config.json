@@ -1,7 +1,8 @@
 {
   "dht": {
     "bootstraps" : [
-      "localhost:3001"
+      "localhost:3001",
+      "ec2-54-234-89-153.compute-1.amazonaws.com:3001"
     ],
     "port": 9880
   },
