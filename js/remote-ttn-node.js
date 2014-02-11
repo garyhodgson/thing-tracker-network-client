@@ -13,30 +13,33 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
     trackerAdded: "trackerAdded"
   },
 
-  initialize: function(nodeId, dhtNode, callback) {
+  initialize: function(nodeId, localDhtNode, callback) {
 
     var that = this;
-    this.dhtNode = dhtNode;
+    this.localDhtNode = localDhtNode;
     this.trackers = {};
     this.nodeId = nodeId;
+    this.nodeAddress = undefined;
     this.verified = false;
-    this.online = false;
+    this.online = undefined;
 
-    this.nodeLocation = GLOBAL.dataPath+"/cache/node/"+nodeId + "/node.json";
+    this.nodeLocation = GLOBAL.dataPath + "/cache/node/" + nodeId + "/node.json";
 
     if (!GLOBAL.skipCache && fs.existsSync(this.nodeLocation)){
       this._nodeJSON = fs.readJsonSync(this.nodeLocation);
+      this.nodeAddress = this._nodeJSON.nodeAddress
+      this.lastSeenOnline = this._nodeJSON.lastSeen;
 
       this._populateTrackers(false, callback);
 
     } else {
 
-      dhtNode.getNodeAsync(nodeId, function(remoteNode){
+      localDhtNode.getNodeAsync(nodeId, false, function(remoteNode){
         if (remoteNode === undefined){
           return callback("Unable to retrieve remote node info from DHT for nodeId: "+ nodeId);
         }
-        that.online = true;
-        that.remoteNodeInfo = remoteNode.ttnNodeInfo;
+
+        that._setRemoteNodeInfo(remoteNode);
 
         var protocol = that.remoteNodeInfo.restProtocol||'http';
         var address = that.remoteNodeInfo.restAddress||remoteNode._address;
@@ -58,8 +61,42 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
     }
   },
 
+  _setRemoteNodeInfo: function(remoteNode){
+    if (remoteNode === undefined){
+      this.online = false;
+    } else {
+      this.online = true;
+      this.lastSeenOnline = remoteNode._lastSeen;
+      this.remoteNodeInfo = remoteNode.ttnNodeInfo;
+      this.nodeAddress = remoteNode._address;
+
+      if (this._nodeJSON !== undefined){
+        this._nodeJSON.lastSeen = remoteNode._lastSeen;
+        this._nodeJSON.nodeAddress = remoteNode._address;
+        this.persist();
+      }
+    }
+  },
+
   getJSON: function(){
     return this._nodeJSON;
+  },
+
+  getID: function(){
+    return this.nodeId;
+  },
+
+  getLastSeen: function(){
+    if (!this.lastSeenOnline){
+      return undefined;
+    }
+    return new Date(this.lastSeenOnline);
+  },
+
+  getAddress: function(){
+    if (this._nodeJSON){
+      return this._nodeJSON.nodeAddress;
+    }
   },
 
   getTrackers: function(){
@@ -84,6 +121,43 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
     });
   },
 
+  ping: function(callback){
+    console.log("ping");
+
+    if (this.localDhtNode === undefined){
+      return callback("Unable to ping, no local DHT node.")
+    }
+    if (!this.localDhtNode.isOnline()){
+      return callback("Unable to ping, local DHT node offline.")
+    }
+
+    var that = this;
+
+    this.localDhtNode.pingNodeAsync(this.nodeId, this.nodeAddress, function(isAlive){
+
+      if (isAlive === true){
+        callback(null, isAlive);
+      } else {
+        var now = (new Date()).getTime();
+        var timeSinceLastSeen = (new Date()).getTime() - that.lastSeenOnline
+        if (timeSinceLastSeen < (10 /*mins*/ * 60 /*seconds*/ * 1000 /*ms*/)){
+          return callback(null, isAlive);
+        } else {
+          log.info("Node hasn't been seen in a while so check if the address is up to date.")
+          that.localDhtNode.getNodeAsync(that.nodeId, true, function(remoteNode){
+            if (remoteNode === null){
+              return callback(null, false);
+            }
+            that._setRemoteNodeInfo(remoteNode);
+            that.ping(callback);
+          });
+        }
+      }
+
+    });
+
+  },
+
   _populateTrackers: function(persist, callback){
     var that = this;
     _.each(this._nodeJSON.trackers, function(trackerJSON, index, list){
@@ -103,10 +177,10 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
     });
 
     if (that.remoteNodeInfo === undefined){
-      if (this.dhtNode.isJoined()){
+      if (this.localDhtNode.isJoined()){
         this._setTrackerRemoteNodeInfo();
       } else {
-        this.dhtNode.on(this.dhtNode.events.joined, function(){
+        this.localDhtNode.on(this.localDhtNode.events.joined, function(){
           that._setTrackerRemoteNodeInfo();
         });
       }
@@ -121,12 +195,11 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
   _setTrackerRemoteNodeInfo: function(){
     var that = this;
 
-    this.dhtNode.getNodeAsync(that.nodeId, function(remoteNode){
+    this.localDhtNode.getNodeAsync(that.nodeId, false, function(remoteNode){
       if (remoteNode === undefined){
         return log.warn("Unable to find DHT Node " + that.nodeId);
       }
-      that.online = true;
-      that.remoteNodeInfo = remoteNode.ttnNodeInfo;
+      that._setRemoteNodeInfo(remoteNode);
       _.each(that.trackers, function(tracker, index, list){
         tracker.setRemoteNodeInfo(that.remoteNodeInfo);
       });

@@ -61,6 +61,10 @@ var DHTNode = module.exports = new Class(EventEmitter, {
     return this.joined;
   },
 
+  isOnline: function(){
+    return this.joined;
+  },
+
   isConnected: function(){
     return this.connected;
   },
@@ -69,14 +73,14 @@ var DHTNode = module.exports = new Class(EventEmitter, {
     this.ttnKadohNode.ping(nodeAddress, nodeId, callback, this);
   },
 
-  getNodeAsync: function(nodeId, callback){
+  getNodeAsync: function(nodeId, skipCache, callback){
     if (callback === undefined){
       return;
     }
     var that = this;
 
-    if (this._remoteNodeCache[nodeId] !== undefined){
-      callback(this._remoteNodeCache[nodeId]);
+    if (!skipCache && this._remoteNodeCache[nodeId] !== undefined){
+      return callback(this._remoteNodeCache[nodeId]);
     } else {
       this.ttnKadohNode.findNode(nodeId, function(remoteNode){
         if (remoteNode) {
@@ -104,12 +108,12 @@ var DHTNode = module.exports = new Class(EventEmitter, {
             that._remoteNodeCache[nodeId.toString()] = remoteNode;
             that.emit(that.events.remoteNodeRetrieved, remoteNode);
 
-            callback(remoteNode);
+            return callback(remoteNode);
           });
 
 
         } else {
-          callback(undefined);
+          return callback(null);
         }
       })
     }

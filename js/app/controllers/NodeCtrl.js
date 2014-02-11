@@ -6,6 +6,7 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
   $scope.trackers = ttnNode.trackers;
   $scope.remoteNodes = ttnNode.remoteNodes;
   $scope.thingsSummary = [];
+  $scope.dhtOnline = ttnNode.dhtNode.isJoined();
 
   $scope.paginatedThingsSummary = [];
   $scope.totalItems = 0;
@@ -41,8 +42,8 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
     });
   });
 
-  eventbus.on(eventbus.events.tracker.online, function(trackerId){
-    console.log(trackerId + " is online");
+  eventbus.on(eventbus.events.dhtNode.joined, function(trackerId){
+    $scope.dhtOnline = ttnNode.dhtNode.isJoined();
   });
 
 
@@ -125,6 +126,21 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
       $timeout(function(){
         $scope.remoteNodes = ttnNode.remoteNodes;
       });
+    });
+  };
+
+  $scope.pingRemoteNode = function(remoteNode){
+    var id = remoteNode.getID()
+    remoteNode.ping(function(err, isAlive){
+      if (err){
+        return log.warn(err);
+      }
+      console.log("isAlive = ",isAlive);
+      if (isAlive === true){
+        log.info("Node "+id+" is alive.");
+      } else {
+        log.info("Node "+id+" is not alive.");
+      }
     });
   };
 

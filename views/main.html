@@ -1,6 +1,6 @@
-<div class="row-fluid">
+<div class="row">
 
-  <div class="span4">
+  <div class="col-md-4">
 
     <h4>My Node</h4>
     <ul>
@@ -17,6 +17,11 @@
         <a ng-click="showRemoteTrackers(remoteNode)" href="">
           <h4>{{ id }}</h4>
         </a>
+          <p>Online: <span tri-state-indicator state="remoteNode.online"></span>
+          <span ng-hide="remoteNode.online" >Last seen: <time relative datetime="{{ remoteNode.getLastSeen().toISOString() }}"></time></span>
+          Verified: <span tri-state-indicator state="remoteNode.verified"></span>
+          </p>
+          <input ng-disabled="!dhtOnline" ng-click="pingRemoteNode(remoteNode)" type="button" value="Ping" id="pingRemoteNodeBtn">
         <hr>
       </li>
     </ul>
@@ -33,14 +38,9 @@
           <p>{{ tracker.getThingsCount() }} things.</p>
           <div ng-show="tracker.remote">
             <p>Remote</p>
-            <p ng-show="tracker.online">Online</p>
-            <p ng-hide="tracker.online">Offline</p>
-            <p ng-show="tracker.verified">Verified</p>
-            <p ng-hide="tracker.verified">Not Verified!</p>
-            <h4 ng-show="tracker.online"><a ng-click="updateTracker(id)" href="">update</a></h4>
           </div>
           <div ng-hide="tracker.remote">
-            <h4><a href="#/app/tracker/{{id}}/thing/new">new thing</a></h4>
+            <h4><a href="#/app/tracker/{{id}}/thing/new">New Thing</a></h4>
           </div>
           <hr>
       </li>
@@ -70,12 +70,12 @@
 
   </div>
 
-  <div class="span8">
+  <div class="col-md-8">
     <h3>Things</h3>
     <pagination ng-show="totalItems > numPerPage" total-items="totalItems" on-select-page="onPageThings(page)" items-per-page="numPerPage" page="currentPage" max-size="maxSize" class="pagination-sm" boundary-links="true" rotate="false"></pagination>
     <ul class="thing-list">
       <li ng-repeat="thing in thingsSummary track by $index">
-        <img class="pull-left thumbnail" width="50" ng-show="thing.thumbnailURL" ng-src="{{ resourcePath(thing.thumbnailURL) }}">
+        <img class="pull-left thumbnail" width="50" ng-show="thing.thumbnailURL" ng-src="{{ imagePath(thing.thumbnailURL) }}">
         <h4><a href="#/tracker/{{ thing.trackerId }}/thing/{{ thing.id }}">{{ thing.title }}</a></h4>
         <p ng-bind-html="thing.summary | nl2br"></p>
         <div ng-hide="thing.remote">

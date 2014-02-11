@@ -65,7 +65,7 @@ body {
   margin: 5px;
 }
 
-.nav, .pagination, .carousel a { cursor: pointer; }
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
 #message-log {
   width: 100%;
@@ -85,4 +85,16 @@ body {
 
 #bomTable #partNumber {
   width: 30px;
+}
+
+.red {
+  color:#CC0000;
+}
+
+.green {
+  color:#6B8E23;
+}
+
+.blue {
+  color:#6495ED;
 }

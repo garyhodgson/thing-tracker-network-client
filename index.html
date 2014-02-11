@@ -3,7 +3,6 @@
   <head>
     <title>TTN Client</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/bootstrap-responsive.min.css" />
     <link rel="stylesheet" href="css/bootstrap.min.css" />
     <link rel="stylesheet" href="css/alertify.core.css" />
     <link rel="stylesheet" href="css/alertify.bootstrap.css" />
@@ -11,37 +10,37 @@
   </head>
 <body ng-controller="AppCtrl">
 
-  <div class="navbar">
-    <div class="navbar-inner">
-      <a class="brand" href="#">TTN Client</a>
-      <ul class="nav pull-right">
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#">TTN Client</a>
+      <ul class="nav navbar-nav navbar-right">
         <li class="info_bar">
           <a>
             <div popover-placement="bottom" popover="{{statsTooltip}}" popover-trigger="mouseenter">
-              <span id="info_connected_label">DHT:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.dhtConnected||false]"></i></span>
-              <span id="info_joined_label">REST:</span>&nbsp;<span><i ng-class="{true: 'icon-ok-circle', false: 'icon-ban-circle'}[stats.restServerConnected||false]"></i></span>
+              <span id="info_connected_label">DHT:</span>&nbsp;<span tri-state-indicator state="stats.dhtConnected"></span>
+              <span id="info_joined_label">REST:</span>&nbsp;<span tri-state-indicator state="stats.restServerConnected"></span>
             </div>
           </a>
         </li>
       </ul>
-      <ul class="nav">
+      <ul class="nav navbar-nav">
         <li><a href="#/">Home</a></li>
         <li><a href="#/tools">Tools</a></li>
         <li><a href="#/log">Log</a></li>
       </ul>
     </div>
-  </div>
+  </nav>
 
   <div class="container">
     <ng-view></ng-view>
   </div>
 
   <script src="js/vendor/alertify.min.js"></script>
-  <script src="js/vendor/angular.js"></script>
-  <script src="js/vendor/angular-route.js"></script>
+  <script src="js/vendor/angular.min.js"></script>
+  <script src="js/vendor/angular-route.min.js"></script>
   <script src="js/vendor/angular-sanitize.min.js"></script>
-  <script src="js/vendor/ui-bootstrap-tpls-0.6.0.min.js"></script>
-  <script src="js/vendor/moment.js"></script>
+  <script src="js/vendor/ui-bootstrap-tpls.min.js"></script>
+  <script src="js/vendor/moment.min.js"></script>
   <script src="js/vendor/ng-time-relative.min.js"></script>
   <script src="js/app/app.js"></script>
   <script src="js/app/services.js"></script>
@@ -52,6 +51,7 @@
   <script src="js/app/controllers/ToolsCtrl.js"></script>
   <script src="js/app/controllers/ThingCtrl.js"></script>
   <script src="js/app/filters.js"></script>
+  <script src="js/app/directives.js"></script>
 </body>
 
 </html>

@@ -15,7 +15,7 @@ var TTNKadohNode = module.exports = kadoh.logic.KademliaNode.extend({
   initialize: function(id, options, ttnNodeInfo) {
     this.supr(id, options);
 
-    this.log = require('kadoh/lib/logging').ns(options.name||'TTNKadohNode')
+    this.log = require('kadoh/lib/logging').ns(options.name||'TTNKadohNode');
 
     this.ttnNodeInfo = ttnNodeInfo;
 
@@ -47,7 +47,7 @@ var TTNKadohNode = module.exports = kadoh.logic.KademliaNode.extend({
   handleGET_TTN_NODE_INFO: function(rpc) {
     var ttnNodeInfo = {
       "nodeId":this.getID(),
-      "restAddress":this.getAddress().replace('0.0.0.0','127.0.0.1'),
+      "restAddress":this.ttnNodeInfo.restAddress,
       "restProtocol": this.ttnNodeInfo.restProtocol
     };
 

@@ -15,11 +15,6 @@ var Class = require('jsclass/src/core').Class,
 
 var RemoteTracker = module.exports = new Class(Tracker, {
 
-  events: {
-    trackerOnline:   "trackerOnline",
-    trackerOffline: "trackerOffline"
-  },
-
   initialize: function(nodeId, trackerId, remoteNodeInfo, callback) {
     var that = this;
     this.nodeId = nodeId;
@@ -98,7 +93,7 @@ var RemoteTracker = module.exports = new Class(Tracker, {
     var cachedThingLocation = GLOBAL.dataPath + "/cache/node/"+this.nodeId+cachedThingURL + "/thing.json";
     if (fs.existsSync(cachedThingLocation)){
       log.info("Returning cached thing for : " +cachedThingURL)
-      callback(null, JSON.parse(fs.readFileSync(cachedThingLocation)));
+      return callback(null, JSON.parse(fs.readFileSync(cachedThingLocation)));
     }
 
     var thingSummary = this.getThingSummarySync(thingId);
@@ -129,8 +124,6 @@ var RemoteTracker = module.exports = new Class(Tracker, {
   },
 
   _getThingByURL: function(restURL, path, cachedThingLocation, callback){
-
-    console.log(restURL, path);
 
     var client = restify.createJsonClient({url: restURL});
 

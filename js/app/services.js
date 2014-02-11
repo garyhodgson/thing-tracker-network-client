@@ -36,9 +36,11 @@ angular.module('TTNClientApp.services', [])
     }
     var configLocation = path.normalize(ttnHomeDir + '/ttn-config.json');
 
-    fs.outputJsonSync(configLocation, {
-      "dataPath": ttnHomeDir + '/data'
-    });
+    if (!fs.existsSync(configLocation)){
+      fs.outputJsonSync(configLocation, {
+        "dataPath": ttnHomeDir + '/data'
+      });
+    }
   }
 
   if (argv.d){
@@ -71,8 +73,6 @@ angular.module('TTNClientApp.services', [])
                   "startRESTServer" : "true"},
     "dataPath": path.normalize(argv.d || ttnHomeDir+'/data')
   });
-
-  console.log(nconf.get("dataPath"));
 
   return nconf.load();
 }])

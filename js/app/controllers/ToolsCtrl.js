@@ -3,50 +3,19 @@ angular.module('TTNClientApp.controllers').controller('ToolsCtrl', ['$scope', 't
 
   $scope.nodes = [];
 
-  $scope.put = function(){
-    ttnNode.dhtNode.put(null, toolsForm.putValue.value, null, function(v){
-      log.info(v)
-    })
-  };
-
-  $scope.get = function(){
-    ttnNode.dhtNode.get(toolsForm.getValue.value, function(v){
-      log.info(v)
-    })
-  };
-
   $scope.refreshInfo = function(){
     ttnNode.stats();
   };
 
-  $scope.followNode = function(nodeId){
-    nodeId = nodeId.trim();
+  $scope.findNode = function(nodeId){
     if (nodeId == undefined){
       log.warn("No Node ID given");
       return;
     }
-    ttnNode.findNodeAsync(nodeId, function(node){
+    ttnNode.findNodeAsync(nodeId, false, function(node){
 
       $scope.nodes.push(node);
 
-      ttnNode.dhtNode.ttnKadohNode.getTracker(node._address, node._id, function(tracker){
-        console.log(tracker);
-      })
-
-    });
-  };
-
-  $scope.followNodeFromAddress = function(nodeAddress){
-    nodeAddress = nodeAddress.trim();
-    if (nodeAddress == undefined){
-      log.warn("No Node Address given");
-      return;
-    }
-    ttnNode.findNodeByAddressAsync(nodeAddress, function(node){
-      $scope.nodes.push(node);
-      ttnNode.dhtNode.ttnKadohNode.getTracker(node._address, node._id, function(tracker){
-        console.log(tracker);
-      })
     });
   };
 

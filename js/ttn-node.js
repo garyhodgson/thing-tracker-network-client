@@ -28,7 +28,12 @@ var TTNNode = module.exports = new Class(EventEmitter, {
   },
 
   initialize: function(config) {
+
     var that = this;
+
+    log.debug("ttn-node config:");
+    log.debug(config);
+
     this.config = config;
     this.trackerNodeIndex = {};
     this.trackers = {};
@@ -44,6 +49,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     this.nodeId = this.nodeKeys.getPublicKeyHash();
     this.ttnNodeInfo = {
       restProtocol : config.RESTServer.protocol||'http',
+      restPort : config.RESTServer.port||9880,
       nodeKeys : this.nodeKeys
     };
 
@@ -52,6 +58,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
         return log.warn("Unable to determine external IP address. ", err);
       }
       that.ttnNodeInfo.externalIPAddress = ip;
+      that.ttnNodeInfo.restAddress = ip + ":" + that.ttnNodeInfo.restPort;
     });
 
     this.initializeDHTNode();
@@ -125,7 +132,10 @@ var TTNNode = module.exports = new Class(EventEmitter, {
       process.nextTick(function() { that.emit(that.events.remoteNodeAdded, remoteTTNNode); });
 
       _.each(remoteTTNNode.getTrackers(), function(remoteTracker, index, list){
+        console.log("remoteTracker.id = remoteNodeId" + remoteTracker.id + " = " + remoteNodeId);
+
         that.trackerNodeIndex[remoteTracker.id] = remoteNodeId;
+        console.log(that.trackerNodeIndex);
       });
 
       if (callback){ callback(null, remoteTTNNode); }
@@ -352,6 +362,8 @@ var TTNNode = module.exports = new Class(EventEmitter, {
 
     fs.outputJsonSync(newTrackerConfigPath, payload);
 
+    this.nodeConfig.trackers = this.nodeConfig.trackers || [];
+
     this.nodeConfig.trackers.push({
         "id": newId,
         "title": newTrackerJSON.title,
@@ -381,8 +393,8 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     })
   },
 
-  findNodeAsync: function(nodeId, callback){
-    this.dhtNode.getNodeAsync(nodeId, callback);
+  findNodeAsync: function(nodeId, skipCache, callback){
+    this.dhtNode.getNodeAsync(nodeId, skipCache, callback);
   },
 
   findNodeByAddressAsync: function(nodeRESTAddress, callback){
@@ -398,7 +410,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
           log.error("Unable to ping remote node with address: " + nodeAddress);
           return;
         }
-        that.dhtNode.getNodeAsync(nodeJSON.nodeId, callback);
+        that.dhtNode.getNodeAsync(nodeJSON.nodeId, false, callback);
 
       });
       client.close();
@@ -437,7 +449,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
   getRemoteTrackerAsync: function(nodeId, trackerId, callback){
     var that = this;
 
-    this.dhtNode.getNodeAsync(nodeId, function(remoteDhtNode){
+    this.dhtNode.getNodeAsync(nodeId, false, function(remoteDhtNode){
       new RemoteTracker(nodeId, trackerId, remoteDhtNode, function(tracker){
         that.addTracker(tracker);
         tracker.persist();

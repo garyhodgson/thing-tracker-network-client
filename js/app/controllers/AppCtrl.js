@@ -91,15 +91,20 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
     }
   };
 
-  $scope.resourcePath = function(itemLocation){
-    if (itemLocation == undefined){
-      return undefined;
+  $scope.imagePath = function(itemLocation){
+    if (itemLocation === undefined){
+      return "";
     }
 
     if (urlRegExp.test(itemLocation)){
       return itemLocation;
     } else {
-      return fs.realpathSync($scope.dataPath+itemLocation);
+      var fileLocation = $scope.dataPath+itemLocation;
+      if (fs.existsSync(fileLocation)){
+        return fileLocation
+      } else {
+        return "img/404.png";
+      }
     }
   };
 

@@ -8,6 +8,7 @@ var app = angular.module('TTNClientApp', [
     'ngRoute',
     'timeRelative',
     'ui.bootstrap',
+    'TTNClientApp.directives',
     'TTNClientApp.filters',
     'TTNClientApp.services',
     'TTNClientApp.controllers'

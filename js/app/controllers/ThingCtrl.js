@@ -28,7 +28,7 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
 
     $scope.tracker.getThing(thingId, version, function(err, thing){
       if (err || thing === undefined){
-        log.error("Unable to find local thing with id: "+ thingId + " and version: " + version);
+        log.error("Unable to find thing with id: "+ thingId + " and version: " + version);
 
         if (err) {
           log.error(err);
@@ -39,7 +39,7 @@ angular.module('TTNClientApp.controllers').controller('ThingCtrl', ['$scope', '$
       }
       $scope.thing = thing;
       $scope.thing.trackerId = trackerId;
-      console.log("$scope.thing = ",$scope.thing);
+      $scope.thing.remote = $scope.tracker.remote || false;
     });
 
     $scope.downloadThing = function(){

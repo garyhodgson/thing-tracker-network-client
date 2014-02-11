@@ -1,4 +1,4 @@
-<div class="row-fluid">
+<div class="row">
 
 
   <h4><span ng-show="editedThing.isNew">New</span><span ng-hide="editedThing.isNew">Edit</span> Thing</h4>
@@ -29,7 +29,7 @@
     <input id="thumbnailChooser" type="file" ng-hide="true" multiple onchange="angular.element(this).scope().thumbnailFilesChanged(this.value)">
     <br>
     <ul class="thumbnails">
-      <li ng-repeat="thumbnail in thumbnails" class="span2">
+      <li ng-repeat="thumbnail in thumbnails" class="col-md-2">
         <div class="thumbnail">
           <img ng-src="file://{{thumbnail}}" alt="{{thumbnail}}">
         </div>
