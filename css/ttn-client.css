@@ -98,3 +98,7 @@ body {
 .blue {
   color:#6495ED;
 }
+
+#tags a:hover {
+  text-decoration: none;
+}

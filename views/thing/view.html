@@ -47,13 +47,13 @@
         <div class="meta row">
           <div class="col-md-6">
             <div id="tags">
-              <i class="icon-tags" title="tags"></i>&nbsp;
-                <a ng-repeat="tag in thing.tags" href="#" class="tag"><span class="label">{{ tag }}</span>&nbsp;</a>
+              <i class="glyphicon glyphicon-tags" title="tags"></i>&nbsp;
+                <a ng-repeat="tag in thing.tags" href="#" class="tag"><span class="label label-primary">{{ tag }}</span>&nbsp;</a>
             </div>
           </div>
           <div class="col-md-6">
             <div id="version">
-              <i class="icon-calendar" title="version"></i>&nbsp;
+              <i class="glyphicon glyphicon-calendar" title="version"></i>&nbsp;
                 {{ thing.version }}&nbsp;&nbsp;&nbsp;<span ng-show="thing.versions" class="dropdown">
                     [<a class="dropdown-toggle"><small>previous versions</small></a>]
                     <ul class="dropdown-menu">

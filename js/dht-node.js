@@ -113,7 +113,7 @@ var DHTNode = module.exports = new Class(EventEmitter, {
 
 
         } else {
-          return callback(null);
+          return callback(undefined);
         }
       })
     }

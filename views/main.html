@@ -18,7 +18,8 @@
           <h4>{{ id }}</h4>
         </a>
           <p>Online: <span tri-state-indicator state="remoteNode.online"></span>
-          <span ng-hide="remoteNode.online" >Last seen: <time relative datetime="{{ remoteNode.getLastSeen().toISOString() }}"></time></span>
+          <span ng-hide="remoteNode.online" >Last seen: <time ng-show="remoteNode.lastSeenOnline" relative datetime="{{ remoteNode.getLastSeen().toISOString() }}"></time><span ng-hide="remoteNode.lastSeenOnline">Unknown</span></span>
+          <br>
           Verified: <span tri-state-indicator state="remoteNode.verified"></span>
           </p>
           <input ng-disabled="!dhtOnline" ng-click="pingRemoteNode(remoteNode)" type="button" value="Ping" id="pingRemoteNodeBtn">

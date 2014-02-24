@@ -122,7 +122,6 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
   },
 
   ping: function(callback){
-    console.log("ping");
 
     if (this.localDhtNode === undefined){
       return callback("Unable to ping, no local DHT node.")
@@ -140,7 +139,7 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
       } else {
         var now = (new Date()).getTime();
         var timeSinceLastSeen = (new Date()).getTime() - that.lastSeenOnline
-        if (timeSinceLastSeen < (10 /*mins*/ * 60 /*seconds*/ * 1000 /*ms*/)){
+        if (timeSinceLastSeen < (30 /*mins*/ * 60 /*seconds*/ * 1000 /*ms*/)){
           return callback(null, isAlive);
         } else {
           log.info("Node hasn't been seen in a while so check if the address is up to date.")

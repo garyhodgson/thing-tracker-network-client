@@ -46,9 +46,11 @@
     "request": "2.30.0",
     "restify": "2.6.0",
     "sync": "0.2.2",
-    "underscore": "1.5.2",
     "underscore.string": "2.3.3",
     "unzip": "0.1.9",
     "kadoh": "git://github.com/garyhodgson/kadoh.git#ttn"
+  },
+  "devDependencies": {
+    "wd": "0.2.10"
   }
 }

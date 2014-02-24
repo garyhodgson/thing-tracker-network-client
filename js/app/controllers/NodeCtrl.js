@@ -131,11 +131,12 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
 
   $scope.pingRemoteNode = function(remoteNode){
     var id = remoteNode.getID()
+    remoteNode.online = undefined;
     remoteNode.ping(function(err, isAlive){
       if (err){
         return log.warn(err);
       }
-      console.log("isAlive = ",isAlive);
+      remoteNode.online = isAlive;
       if (isAlive === true){
         log.info("Node "+id+" is alive.");
       } else {
