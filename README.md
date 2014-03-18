@@ -1,4 +1,3 @@
-
 Thing Tracker Network Client
 =====================
 
@@ -41,12 +40,7 @@ Options:
 
 ### Developing
 * Clone this project.
-* Run `npm install` to retrieve the relevant node modules.
-* Run `git submodule init` and `git submodule update` to pull in the custom version of KadOH.
-* Also run `npm install` under `node_modules/kadoh` to pull in their dependencies. (_NOTE: Not sure if this is the best way to go about distributing this_).
-
-#### Debugging
-It might be worth using the debug UI of the [KadOH](https://github.com/jinroh/kadoh) project to connect to the network. See instructions in that project.
+* Run `npm install` to retrieve the relevant node modules.  This should also pull in the custom version of Kadoh, directly from the ttn branch of the github repository.
 
 
 ### License
