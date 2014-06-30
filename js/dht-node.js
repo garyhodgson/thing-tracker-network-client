@@ -17,7 +17,7 @@ var DHTNode = module.exports = new Class(EventEmitter, {
     remoteNodeRetrieved: "remoteNodeRetrieved"
   },
 
-	initialize: function(id, options, ttnNodeInfo) {
+  initialize: function(id, options, ttnNodeInfo) {
     var that = this;
     this.connected = false;
     this.joined = false;

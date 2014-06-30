@@ -166,8 +166,8 @@ var RemoteTracker = module.exports = new Class(Tracker, {
       return;
     }
 
-    if (thing.downloadURL === undefined){
-      log.error("Attempt to download content with an undefined thing downloadURL.");
+    if (thing.downloadUrl === undefined){
+      log.error("Attempt to download content with an undefined thing downloadUrl.");
       return;
     }
 
@@ -180,13 +180,13 @@ var RemoteTracker = module.exports = new Class(Tracker, {
     }
 
     var protocol = this.remoteNodeInfo.restProtocol || 'http';
-    var restURL = protocol + '://' + remoteNodeinfo.restAddress+thing.downloadURL;
+    var restURL = protocol + '://' + remoteNodeinfo.restAddress+thing.downloadUrl;
 
     var filename=path.basename(restURL);
     var filenameExt = path.extname(filename);
 
     if (filenameExt != ".zip"){
-      log.error("Only zip file downloadable content is handled at the moment. downloadURL points to a file with extension: " + filenameExt);
+      log.error("Only zip file downloadable content is handled at the moment. downloadUrl points to a file with extension: " + filenameExt);
       return;
     }
 

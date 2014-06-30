@@ -1,5 +1,6 @@
 var gui = require('nw.gui'),
     eventbus = require('./js/event-bus'),
+    fs = require('fs-extra'),
     EventEmitter = require('events').EventEmitter,
     log = require('kadoh/lib/logging').ns('TTNClient');
 
@@ -71,13 +72,25 @@ var app = angular.module('TTNClientApp', [
     var splashwin;
 
     eventbus.on(eventbus.generatingKeys, function(){
-      splashwin = gui.Window.open('./generatingKeys.html', {
-          'frame': false,
-          "toolbar": false,
-          'position': 'center',
-          'new-instance': true,
-          'always-on-top': true
-      });
+
+      if (splashwin !== undefined){
+        return;
+      }
+
+      var splashHtml = process.cwd() + "/generatingKeys.html";
+
+      if (fs.existsSync(splashHtml)){
+        splashwin = gui.Window.open('file://' + splashHtml, {
+            'frame': false,
+            "toolbar": false,
+            "new-instance": true,
+            'position': 'center',
+            'always-on-top': true
+        });
+      } else {
+        console.log("Unable to find splash html at " + splashHtml);
+      }
+
     });
 
     var win = gui.Window.get();

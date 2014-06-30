@@ -15,7 +15,7 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
   };
 
   $scope.files = [];
-  $scope.thumbnails = [];
+  $scope.thumbnailUrls = [];
 
   $scope.editedThing = {};
 
@@ -23,8 +23,8 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
     $scope.editedThing = $scope.tracker.getThingSync($routeParams.thingId);
     $scope.editedThing.isNew = false;
 
-    _.each($scope.editedThing.thumbnails, function(value, index, list){
-      $scope.thumbnails.push($scope.dataPath + value);
+    _.each($scope.editedThing.thumbnailUrls, function(value, index, list){
+      $scope.thumbnailUrls.push($scope.dataPath + value);
     });
   } else {
     $scope.editedThing.isNew = true;
@@ -69,7 +69,7 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
     cleanThingJSON(this.editedThing);
     cleanThingJSON(this.editedThing);
 
-    $scope.tracker.updateThing(this.editedThing, $scope.files, $scope.thumbnails, function(err, thing){
+    $scope.tracker.updateThing(this.editedThing, $scope.files, $scope.thumbnailUrls, function(err, thing){
       if (err){
         return log.error(err);
       }
@@ -81,7 +81,7 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
   }
 
   $scope.thumbnailFilesChanged = function(files) {
-    this.thumbnails  = files.split(";");
+    this.thumbnailUrlsf  = files.split(";");
     $scope.$apply();
   }
 

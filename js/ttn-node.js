@@ -298,6 +298,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
   },
 
   getTracker: function(trackerId){
+    console.log("this.trackerNodeIndex = ",this.trackerNodeIndex);
     var nodeId = this.trackerNodeIndex[trackerId];
     if (nodeId === undefined){
       throw new Error("Invalid node id. Unable to find node for tracker " + trackerId);

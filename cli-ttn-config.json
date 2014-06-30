@@ -1,0 +1,17 @@
+{
+  "dht": {
+    "bootstraps" : [
+      "localhost:3001"
+    ],
+    "port": 5000
+  },
+  "RESTServer" : {
+    "port": 5000,
+    "protocol": "http"
+  },
+	"startup" : {
+    "joinNetwork" : "true",
+    "joinDHT" : "true"
+  },
+  "dataPath": "T:\\www\\ttn-client\\playground\\cli-client-data"
+}

@@ -27,6 +27,9 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
 
     if (!GLOBAL.skipCache && fs.existsSync(this.nodeLocation)){
       this._nodeJSON = fs.readJsonSync(this.nodeLocation);
+
+      console.log("this._nodeJSON=",this._nodeJSON);
+
       this.nodeAddress = this._nodeJSON.nodeAddress
       this.lastSeenOnline = this._nodeJSON.lastSeen;
 

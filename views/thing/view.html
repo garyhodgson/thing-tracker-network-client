@@ -12,12 +12,12 @@
     <div class="row">
       <div class="col-md-4">
 
-        <div id="lead-image-container" ngShow="thing.thumbnails">
-            <img class='img-responsive lead-image'  ng-src='{{ imagePath(thing.thumbnails[0]) }}' />
+        <div id="lead-image-container" ngShow="thing.thumbnailUrls">
+            <img class='img-responsive lead-image'  ng-src='{{ imagePath(thing.thumbnailUrls[0]) }}' />
         </div>
 
         <div class="row">
-          <div class="col-md-3" ng-repeat="thumbnail in thing.thumbnails" ng-show="!$first">
+          <div class="col-md-3" ng-repeat="thumbnail in thing.thumbnailUrls" ng-show="!$first">
             <img class='img-responsive' ng-src='{{ imagePath(thumbnail) }}' />
           </div>
         </div>
@@ -29,7 +29,7 @@
         <div id="description" ng-bind-html="thing.description | nl2br"></div>
 
         <div class="meta row">
-          <div class="col-md-6">
+          <div class="col-md-11">
             <div id="home"><i class='glyphicon glyphicon-home' title="Repository"></i>&nbsp;<a ng-show="thing.url" title="{{thing.url}}" ng-click="navigateToURL(thing.url)" href="">{{thing.url|stripUrlProtocol|truncate:100:"&hellip;"}}</a></div>
           </div>
         </div>
@@ -74,7 +74,7 @@
             </div>
           </div>
           <div class="col-md-6">
-            <span ng-show="thing.downloadURL">
+            <span ng-show="thing.downloadUrl">
               <div id="download"><i class='glyphicon glyphicon-download' title="Download"></i>&nbsp;<a href="" ng-click="downloadThing(thing)">Download</a></div>
             </span>
           </div>
@@ -102,7 +102,7 @@
               <div class="list-item row" ng-repeat="item in thing.billOfMaterials | orderBy:'partNumber'">
                 <div class="col-md-2">
                   <small class="pull-left">{{ item.partNumber }}</small>
-                  <img ng-show="item.thumbnailURL" class="media-object" width="40px" ng-src="{{ imagePath(item.thumbnailURL) }}">
+                  <img ng-show="item.thumbnailUrl" class="media-object" width="40px" ng-src="{{ imagePath(item.thumbnailUrl) }}">
                 </div>
                 <div class="col-md-1">
                   <div>{{ item.quantity || 1 }}&nbsp;{{ item.unit || 'x'}}</div>
@@ -144,7 +144,11 @@
 
             <tab heading="Relationships" ng-show="thing.relationships">
               <ul class="list-item" ng-repeat="relationship in thing.relationships">
-                <li><a href="" ng-click="navigateToURL(relationship.url)">{{ relationship.url}}</a></li>
+                <li>
+                    <span ng-show="relationship.title">{{relationship.title}} : </span>
+                    <a href="" ng-click="navigateToURL(relationship.url)">{{ relationship.url}}</a>
+                    <span ng-show="relationship.type"> ({{relationship.type}}) </span>
+                </li>
               </ul>
             </tab>
 

@@ -70,12 +70,12 @@ var Tracker = module.exports = new Class({
     var thingLocation = GLOBAL.dataPath + thingAddress;
     var thingContentLocation = thingLocation + "/content/";
     var thingThumbnailsLocation = thingLocation + "/thumbnail/";
-    var thingThumbnailURL = thingAddress+ "/thumbnail/";
-    var thingZipURL = thingAddress + "/" + newThing.id + "_" + newThing.version +".zip";
-    var thingZipLocation = GLOBAL.dataPath + thingZipURL;
+    var thingThumbnailUrl = thingAddress+ "/thumbnail/";
+    var thingZipUrl = thingAddress + "/" + newThing.id + "_" + newThing.version +".zip";
+    var thingZipLocation = GLOBAL.dataPath + thingZipUrl;
 
-    newThing.downloadURL = thingZipURL;
-    newThing.thumbnails = _.map(thumbnailPaths, function(thumbnailPath){ return thingThumbnailURL + path.basename(thumbnailPath); });
+    newThing.downloadUrl = thingZipUrl;
+    newThing.thumbnailUrls = _.map(thumbnailPaths, function(thumbnailPath){ return thingThumbnailUrl + path.basename(thumbnailPath); });
 
 
     fs.outputJson(thingLocation+"/thing.json", newThing, function(err){
@@ -86,9 +86,10 @@ var Tracker = module.exports = new Class({
         that.addThingSummaryToTracker({
           "id": newThing.id,
           "title": newThing.title,
+          "refUrl": "/tracker/"+that.id+"/thing/"+newThing.id,
           "latestVersion": newThing.version,
           "versions": [newThing.version],
-          "thumbnailURL": newThing.thumbnails[0]||"",
+          "thumbnailUrl": newThing.thumbnailUrls[0]||"",
           "description": newThing.description
           });
       }
@@ -243,7 +244,7 @@ var Tracker = module.exports = new Class({
         remote: that.remote,
         title: thing.title,
         summary: thing.description,
-        thumbnailURL: thing.thumbnailURL||undefined
+        thumbnailUrl: thing.thumbnailUrl||undefined
       });
     });
   },

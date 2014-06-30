@@ -51,13 +51,12 @@ var NodelessTracker = module.exports = new Class(RemoteTracker, {
         return callback("Unable to find thingSummaryJSON in tracker for thingId: " + thingId);
       }
 
-      if (thingSummaryJSON.refURL === undefined){
-        log.warn("no reference URL to follow, return the summary in the hope it is enough.");
+      if (thingSummaryJSON.refUrl === undefined){
         // no reference URL to follow, return the summary in the hope it is enough.
         return callback(null, thingSummaryJSON);
       }
 
-      var thingRefURL = url.parse(thingSummaryJSON.refURL);
+      var thingRefURL = url.parse(thingSummaryJSON.refUrl);
 
       var client = restify.createJsonClient({url: thingRefURL.protocol + "//" + thingRefURL.host});
 

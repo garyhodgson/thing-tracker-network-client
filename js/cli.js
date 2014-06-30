@@ -83,5 +83,5 @@ if (argv.i){
     });
   });
 
-  repl.context.t = ttnNode;
+  repl.context.ttnNode = ttnNode;
 }

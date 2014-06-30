@@ -67,6 +67,8 @@ body {
 
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
 
+.clickable { cursor: pointer; }
+
 #message-log {
   width: 100%;
 }
@@ -80,10 +82,6 @@ body {
 }
 
 #bomTable #quantity {
-  width: 30px;
-}
-
-#bomTable #partNumber {
   width: 30px;
 }
 

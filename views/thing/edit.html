@@ -1,122 +1,210 @@
 <div class="row">
 
 
-  <h4><span ng-show="editedThing.isNew">New</span><span ng-hide="editedThing.isNew">Edit</span> Thing</h4>
-
-  <form name="editedThingForm" ng-submit="saveThing()">
+  <form role="form" name="editedThingForm" ng-submit="saveThing()" >
     <input ng-model="editedThing.id" name="id" type="hidden">
 
-    Tracker: <input ng-model="tracker._trackerJSON.title" readonly type="text">
-    <br>
-    Title<small>*</small>: <input ng-model="editedThing.title" name="title" type="text" required>
-    <span class="error" ng-show="editedThingForm.title.$error.required">Required!</span>
-    <br>
-    Version<small>*</small>: <input ng-model="editedThing.version" name="version" type="text" ng-pattern="/^[_\w\-\.\s]+$/" required>
-    <span class="error" ng-show="editedThingForm.version.$error.required">Required!</span>
-    <span class="error" ng-show="editedThingForm.version.$error.pattern">Only letters, numbers, period, space, dash and underscore are allowed.</span>
-    <br>
-    Description: <textarea ng-model="editedThing.description"></textarea>
-    <br>
-    Homepage: <input ng-model="editedThing.url" name="homepage" type="url">
-    <span class="error" ng-hide="editedThingForm.homepage.$valid">URL Expected!</span>
-    <br>
-    License(s): <input ng-list ng-model="editedThing.licenses" type="text">
-    <br>
-    Tags: <input ng-list ng-model="editedThing.tags" type="text">
-    <br>
-    Thumbnails:
-    <input type="button" onclick="document.querySelector('#thumbnailChooser').click()" value="Select Thumbnails...">
-    <input id="thumbnailChooser" type="file" ng-hide="true" multiple onchange="angular.element(this).scope().thumbnailFilesChanged(this.value)">
-    <br>
-    <ul class="thumbnails">
-      <li ng-repeat="thumbnail in thumbnails" class="col-md-2">
-        <div class="thumbnail">
-          <img ng-src="file://{{thumbnail}}" alt="{{thumbnail}}">
+    <div class="row">
+        <div class="pull-left">
+            <h3><span ng-show="editedThing.isNew">New</span><span ng-hide="editedThing.isNew">Edit</span> Thing <small>in {{tracker._trackerJSON.title}}</small></h3>
         </div>
-      </li>
-    </ul>
-    <br>
-    <fieldset>
-      <legend>Authors</legend>
-      <table>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Web</th>
-          <th></th>
-        </tr>
-        <tr ng-repeat="author in editedThing.authors">
-          <td><input ng-model="author.name" type="text"></td>
-          <td><input ng-model="author.email" type="text"></td>
-          <td><input ng-model="author.web" type="text"></td>
-          <td><input type="button" ng-click="removeAuthor($index)" value="Remove"></td>
-        </tr>
-      </table>
-      <input type="button" ng-click="addAuthor()" value="Add">
-    </fieldset>
-    <fieldset>
-      <legend>BOM</legend>
-      <table id="bomTable">
-        <tr>
-          <th>Part Number</th>
-          <th>Description</th>
-          <th>Quantity</th>
-          <th>Unit</th>
-          <th>Note</th>
-          <th></th>
-        </tr>
-        <tr ng-repeat="material in editedThing.billOfMaterials">
-          <td><input id="partNumber" ng-model="material.partNumber" type="text" readonly></td>
-          <td><input ng-model="material.description" type="text" ng-readonly="material.$isContentFile"></td>
-          <td><input id="quantity" ng-model="material.quantity" type="text"></td>
-          <td><input id="unit" ng-model="material.unit" type="text"></td>
-          <td><input ng-model="material.xBOMMetadata.note" type="text"></td>
-          <td><input type="button" ng-click="removeMaterial($index)" value="Remove"></td>
-        </tr>
-      </table>
-      <input type="button" ng-click="addMaterial()" value="Add">
-      <input type="button" onclick="document.querySelector('#fileChooser').click()" value="Add Files...">
-      <input type="button" onclick="document.querySelector('#dirChooser').click()" value="Add Directory...">
-      <input id="fileChooser" type="file" ng-hide="true" multiple onchange="angular.element(this).scope().addFiles(this.value)">
-      <input id="dirChooser" type="file" ng-hide="true" nwdirectory onchange="angular.element(this).scope().addDir(this.value)">
-    </fieldset>
+        <div class="pull-right">
+            <button type="submit" id="submit" ng-disabled="!editedThingForm.$valid" class="btn btn-lg btn-success">Submit</button>
+        </div>
+    </div>
 
-    <fieldset>
-      <legend>Instructions</legend>
-      <table id="instructionsTable">
-        <tr>
-          <th>Step</th>
-          <th>Text</th>
-          <th>Note</th>
-          <th></th>
-        </tr>
-        <tr ng-repeat="instruction in editedThing.instructions">
-          <td><input ng-model="instruction.step" type="text" value="{{$index+1}}"></td>
-          <td><input ng-model="instruction.text" type="text"></td>
-          <td><input ng-model="instruction.xInstructionMetadata.note" type="text"></td>
-          <td><input type="button" ng-click="removeInstruction($index)" value="Remove"></td>
-        </tr>
-      </table>
-      <input type="button" ng-click="addInstruction()" value="Add">
-    </fieldset>
 
-    <fieldset>
-      <legend>Relationships</legend>
-      <table id="bomTable">
-        <tr>
-          <th>URL</th>
-          <th>Description</th>
-          <th></th>
-        </tr>
-        <tr ng-repeat="relationship in editedThing.relationships">
-            <td><input ng-model="relationship.url" type="text"/></td>
-            <td><input ng-model="relationship.description" type="text"/></td>
-            <td><input type="button" ng-click="removeRelationship($index)" value="Remove"></td>
-        </tr>
-      </table>
-      <input type="button" ng-click="addRelationship()" value="Add">
-    </fieldset>
 
-    <input type="submit" id="submit" value="Save" ng-disabled="!editedThingForm.$valid"/>
+    <div class="row">
+        <div class="col-md-6">
+
+            <div class="panel panel-default">
+              <div class="panel-body">
+
+                <div class="form-group" ng-class="{true: 'has-error has-feedback', false: 'has-success has-feedback'}[editedThingForm.title.$error.required]">
+                    <label class="control-label" for="inputTitle">Title</label>
+                    <input class="form-control" id="inputTitle" ng-model="editedThing.title" name="title" type="text" required>
+                    <span class="glyphicon glyphicon-warning-sign form-control-feedback" title="Required Field." ng-show="editedThingForm.title.$error.required"></span>
+                </div>
+
+                <div class="form-group" ng-class="{true: 'has-error has-feedback', false: 'has-success has-feedback'}[editedThingForm.version.$error.required || editedThingForm.version.$error.pattern]">
+                    <label class="control-label" for="inputVersion">Version</label>
+                    <input class="form-control" id="inputVersion" ng-model="editedThing.version" name="version" ng-pattern="/^[_\w\-\.\s]+$/" type="text" required>
+                    <span class="glyphicon glyphicon-warning-sign form-control-feedback" title="Required Field." ng-show="editedThingForm.version.$error.required"></span>
+                    <span class="glyphicon glyphicon-warning-sign form-control-feedback" title="Only letters, numbers, period, space, dash and underscore are allowed." ng-show="editedThingForm.version.$error.pattern"></span>
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label" for="inputDescription">Description</label>
+                    <textarea class="form-control" id="inputDescription" ng-model="editedThing.description" name="description" ></textarea>
+                </div>
+
+
+                <div class="form-group">
+                    <label class="control-label" for="inputHomepage">Homepage</label>
+                    <input class="form-control" id="inputHomepage" ng-model="editedThing.url" name="homepage" type="url">
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label" for="inputDownloadLink">Download Link</label>
+                    <input class="form-control" id="inputDownloadLink" ng-model="editedThing.downloadUrl" name="downloadUrl" type="url">
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label" for="inputLicenses">License(s)</label>
+                    <input class="form-control" id="inputLicenses" ng-model="editedThing.licenses" name="licenses" type="text">
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label" for="inputTags">Tags</label>
+                    <input class="form-control" id="inputTags" ng-model="editedThing.tags" name="tags" type="text">
+                </div>
+
+              </div>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title">Thumbnails</h3>
+              </div>
+              <div class="panel-body">
+                <ul class="thumbnails">
+                  <div ng-repeat="thumbnail in thumbnailUrls"  class="col-md-3">
+                      <img ng-src="file://{{thumbnail}}" alt="{{thumbnail}}" class="img-thumbnail">
+                  </div>
+                </ul>
+              </div>
+              <div class="panel-footer">
+                <input type="button" onclick="document.querySelector('#thumbnailChooser').click()" value="Select Files...">
+                <input id="thumbnailChooser" type="file" ng-hide="true" multiple onchange="angular.element(this).scope().thumbnailFilesChanged(this.value)">
+              </div>
+            </div>
+
+            <div class="panel panel-default">
+              <div class="panel-heading">
+                <h3 class="panel-title">Authors</h3>
+              </div>
+              <div class="panel-body">
+                <table class="table table-condensed">
+                <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Web</th>
+                      <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="author in editedThing.authors">
+                      <td><input ng-model="author.name" type="text"></td>
+                      <td><input ng-model="author.email" type="text"></td>
+                      <td><input ng-model="author.web" type="text"></td>
+                      <td><span ng-click="removeAuthor($index)" class="glyphicon glyphicon-remove clickable" title="remove"></span></td>
+                    </tr>
+                </tbody>
+              </table>
+
+              </div>
+              <div class="panel-footer">
+                <input type="button" ng-click="addAuthor()" value="Add">
+              </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <tabset justified="true">
+
+                <tab heading="Bill Of Materials">
+
+                    <div class="panel panel-default">
+                      <div class="panel-body">
+                        <table id="bomTable" class="table table-condensed">
+                            <thead>
+                                <tr>
+                                  <th title="Part Number">#</th>
+                                  <th>Description</th>
+                                  <th>Quantity</th>
+                                  <th>Unit</th>
+                                  <th>Note</th>
+                                  <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr ng-repeat="material in editedThing.billOfMaterials">
+                                  <td>{{material.partNumber}}</td>
+                                  <td><input ng-model="material.description" type="text" ng-readonly="material.$isContentFile"></td>
+                                  <td><input id="quantity" ng-model="material.quantity" type="text"></td>
+                                  <td><input id="unit" ng-model="material.unit" type="text"></td>
+                                  <td><input ng-model="material.xBOMMetadata.note" type="text"></td>
+
+                                  <td><span ng-click="removeMaterial($index)" class="glyphicon glyphicon-remove clickable" title="remove"></span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                      </div>
+                      <div class="panel-footer">
+                        <input type="button" ng-click="addMaterial()" value="Add">
+                        <input type="button" onclick="document.querySelector('#fileChooser').click()" value="Add Files...">
+                        <input type="button" onclick="document.querySelector('#dirChooser').click()" value="Add Directory...">
+                        <input id="fileChooser" type="file" ng-hide="true" multiple onchange="angular.element(this).scope().addFiles(this.value)">
+                        <input id="dirChooser" type="file" ng-hide="true" nwdirectory onchange="angular.element(this).scope().addDir(this.value)">
+                      </div>
+                    </div>
+                </tab>
+
+                <tab heading="Instructions">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <table id="instructionsTable" class="table table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th>Step</th>
+                                        <th>Text</th>
+                                        <th>Note</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="instruction in editedThing.instructions">
+                                        <td><input ng-model="instruction.step" type="text" value="{{$index+1}}"></td>
+                                        <td><input ng-model="instruction.text" type="text"></td>
+                                        <td><input ng-model="instruction.xInstructionMetadata.note" type="text"></td>
+
+                                        <td><span ng-click="removeInstruction($index)" class="glyphicon glyphicon-remove clickable" title="remove"></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="panel-footer">
+                            <input type="button" ng-click="addInstruction()" value="Add">
+                        </div>
+                    </div>
+                </tab>
+                <tab heading="Relationships">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <table id="relationshipsTable" class="table table-condensed">
+                            <tr>
+                                <th>URL</th>
+                                <th>Description</th>
+                                <th></th>
+                            </tr>
+                            <tr ng-repeat="relationship in editedThing.relationships">
+                                <td><input ng-model="relationship.url" type="url"/></td>
+                                <td><input ng-model="relationship.description" type="text"/></td>
+
+                                <td><span ng-click="removeRelationship($index)" class="glyphicon glyphicon-remove clickable" title="remove"></span></td>
+                            </tr>
+                            </table>
+                        </div>
+                        <div class="panel-footer">
+                            <input type="button" ng-click="addRelationship()" value="Add">
+                        </div>
+                    </div>
+                </tab>
+          </tabset>
+        </div>
+    </div>
   </form>
 </div>

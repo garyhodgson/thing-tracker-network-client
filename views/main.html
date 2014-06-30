@@ -15,8 +15,10 @@
     <ul>
       <li ng-repeat="(id, remoteNode) in remoteNodes track by id">
         <a ng-click="showRemoteTrackers(remoteNode)" href="">
-          <h4>{{ id }}</h4>
+          <h4 ng-show="remoteNode.getJSON().description">{{ remoteNode.getJSON().description }}</h4>
+          <h4 ng-hide="remoteNode.getJSON().description">{{ remoteNode.getJSON().url }}</h4>
         </a>
+        <h5>{{ id }}</h5>
           <p>Online: <span tri-state-indicator state="remoteNode.online"></span>
           <span ng-hide="remoteNode.online" >Last seen: <time ng-show="remoteNode.lastSeenOnline" relative datetime="{{ remoteNode.getLastSeen().toISOString() }}"></time><span ng-hide="remoteNode.lastSeenOnline">Unknown</span></span>
           <br>
@@ -76,7 +78,7 @@
     <pagination ng-show="totalItems > numPerPage" total-items="totalItems" on-select-page="onPageThings(page)" items-per-page="numPerPage" page="currentPage" max-size="maxSize" class="pagination-sm" boundary-links="true" rotate="false"></pagination>
     <ul class="thing-list">
       <li ng-repeat="thing in thingsSummary track by $index">
-        <img class="pull-left thumbnail" width="50" ng-show="thing.thumbnailURL" ng-src="{{ imagePath(thing.thumbnailURL) }}">
+        <img class="pull-left thumbnail" width="50" ng-show="thing.thumbnailUrl" ng-src="{{ imagePath(thing.thumbnailUrl) }}">
         <h4><a href="#/tracker/{{ thing.trackerId }}/thing/{{ thing.id }}">{{ thing.title }}</a></h4>
         <p ng-bind-html="thing.summary | nl2br"></p>
         <div ng-hide="thing.remote">
