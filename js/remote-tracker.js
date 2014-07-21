@@ -15,7 +15,7 @@ var Class = require('jsclass/src/core').Class,
 
 var RemoteTracker = module.exports = new Class(Tracker, {
 
-  initialize: function(nodeId, trackerId, remoteNodeInfo, callback) {
+  initialize: function(nodeId, trackerId, remoteNodeInfo, refreshCache, callback) {
     var that = this;
     this.nodeId = nodeId;
     this.remoteNodeInfo = remoteNodeInfo;
@@ -25,7 +25,7 @@ var RemoteTracker = module.exports = new Class(Tracker, {
     this.verified = false;
     this.trackerLocation = GLOBAL.dataPath+ "/cache/node/"+nodeId+"/tracker/" + trackerId + "/tracker.json";
 
-    if (fs.existsSync(this.trackerLocation)){
+    if (!refreshCache && fs.existsSync(this.trackerLocation)){
       this._trackerJSON = JSON.parse(fs.readFileSync(this.trackerLocation));
 
       if (callback !== undefined){

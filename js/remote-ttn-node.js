@@ -28,39 +28,14 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
     if (!GLOBAL.skipCache && fs.existsSync(this.nodeLocation)){
       this._nodeJSON = fs.readJsonSync(this.nodeLocation);
 
-      console.log("this._nodeJSON=",this._nodeJSON);
-
       this.nodeAddress = this._nodeJSON.nodeAddress
       this.lastSeenOnline = this._nodeJSON.lastSeen;
 
-      this._populateTrackers(false, callback);
+      this._populateTrackers(false, false, callback);
 
     } else {
 
-      localDhtNode.getNodeAsync(nodeId, false, function(remoteNode){
-        if (remoteNode === undefined){
-          return callback("Unable to retrieve remote node info from DHT for nodeId: "+ nodeId);
-        }
-
-        that._setRemoteNodeInfo(remoteNode);
-
-        var protocol = that.remoteNodeInfo.restProtocol||'http';
-        var address = that.remoteNodeInfo.restAddress||remoteNode._address;
-        var client = restify.createJsonClient({url: protocol+'://' + address});
-
-        var cb = function(){
-          that.persist();
-          that._populateTrackers(true, callback);
-          client.close();
-        }
-
-        client.get('/', function(err, req, res, remoteNodeJSON) {
-          if (err) return callback(err);
-          that._nodeJSON = remoteNodeJSON;
-          cb();
-        });
-
-      });
+      this.refresh(callback);
     }
   },
 
@@ -79,6 +54,34 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
         this.persist();
       }
     }
+  },
+
+  refresh: function(callback){
+    var that = this;
+    this.localDhtNode.getNodeAsync(this.nodeId, false, function(remoteNode){
+        if (remoteNode === undefined){
+          return callback("Unable to retrieve remote node info from DHT for nodeId: "+ nodeId);
+        }
+
+        that._setRemoteNodeInfo(remoteNode);
+
+        var protocol = that.remoteNodeInfo.restProtocol||'http';
+        var address = that.remoteNodeInfo.restAddress||remoteNode._address;
+        var client = restify.createJsonClient({url: protocol+'://' + address});
+
+        var cb = function(){
+          that.persist();
+          that._populateTrackers(true, true, callback);
+          client.close();
+        }
+
+        client.get('/', function(err, req, res, remoteNodeJSON) {
+          if (err) return callback(err);
+          that._nodeJSON = remoteNodeJSON;
+          cb();
+        });
+
+      });
   },
 
   getJSON: function(){
@@ -160,11 +163,11 @@ var RemoteTTNNode = module.exports = new Class(EventEmitter, {
 
   },
 
-  _populateTrackers: function(persist, callback){
+  _populateTrackers: function(persist, refreshCache, callback){
     var that = this;
     _.each(this._nodeJSON.trackers, function(trackerJSON, index, list){
       var trackerId = trackerJSON.id;
-      new RemoteTracker(that.nodeId, trackerId, that.remoteNodeInfo, function(err, tracker){
+      new RemoteTracker(that.nodeId, trackerId, that.remoteNodeInfo, refreshCache, function(err, tracker){
         if (err){
           if (callback !== undefined){
             callback(err);

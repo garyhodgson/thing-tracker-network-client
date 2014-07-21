@@ -3,6 +3,8 @@ var RemoteTTNNode = require('./js/remote-ttn-node');
 angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$timeout', '$rootScope', 'ttnNode', function($scope, $timeout, $rootScope, ttnNode) {
 
   $scope.thisNodeId = ttnNode.getNodeId();
+  $scope.thisNodeDescription = ttnNode.getNodeDescription();
+
   $scope.trackers = ttnNode.trackers;
   $scope.remoteNodes = ttnNode.remoteNodes;
   $scope.thingsSummary = [];
@@ -24,9 +26,11 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
   ttnNode.on(ttnNode.events.initialized, function(){
     console.log("ttnNode.events.initialized");
 
+
     $timeout(function(){
       $scope.trackers = ttnNode.trackers;
       $scope.remoteNodes = ttnNode.remoteNodes;
+
     });
   })
   .on(ttnNode.events.trackerRemoved, function(){
@@ -142,6 +146,19 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
       } else {
         log.info("Node "+id+" is not alive.");
       }
+    });
+  };
+
+  $scope.refreshRemoteNode = function(remoteNode){
+    var id = remoteNode.getID()
+    if (!remoteNode.online){
+      return log.info("Node "+id+" is not online.");
+    }
+    remoteNode.refresh(function(err, remoteNode){
+      if (err){
+        return log.warn(err);
+      }
+      log.info("Node "+id+" refreshed.");
     });
   };
 

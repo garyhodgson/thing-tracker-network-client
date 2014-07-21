@@ -49,8 +49,16 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
    _.each(localThing, function(v,k){
       if ((_.isArray(v) || _.isObject(v)) && _.isEmpty(v)) {
         delete localThing[k];
-      } else if (_.isString(v) && _.isEmpty(v)){
-        delete localThing[k];
+      } else if (_.isString(v)){
+        if (_.isEmpty(v)){
+          delete localThing[k];
+          return;
+        }
+        // remove angular contamination
+        if (k.substr(0,2) == "$$"){
+          delete localThing[k];
+          return;
+        }
       } else if (_.isObject(v)){
         cleanThingJSON(v);
       }
@@ -59,12 +67,10 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
 
   $scope.saveThing = function(){
     var now = new Date();
+    if (!this.editedThing.created) {
+      this.editedThing.created = now.toJSON();
+    }
     this.editedThing.updated = now.toJSON();
-
-    var deangularisedThingClone = angular.fromJson(angular.toJson(this.editedThing));
-
-    this.editedThing = deangularisedThingClone
-
     //Run twice to clear 2 levels of possble empty objects, e.g. xInstructionMetadata.note
     cleanThingJSON(this.editedThing);
     cleanThingJSON(this.editedThing);
@@ -73,8 +79,6 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
       if (err){
         return log.error(err);
       }
-      log.info("Thing update: " + thing.id)
-
       $location.path( "/tracker/" + $scope.tracker.id + "/thing/" + thing.id);
     });
 

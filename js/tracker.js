@@ -59,7 +59,19 @@ var Tracker = module.exports = new Class({
     if (this._trackerJSON.things === undefined){
       this._trackerJSON.things = []
     }
-    this._trackerJSON.things.push(thingJSON);
+
+    if (thingJSON.id){
+      var thingSummary = _.find(this._trackerJSON.things, {'id':thingJSON.id});
+      if (thingSummary){
+        var index = this._trackerJSON.things.indexOf(thingSummary);
+        this._trackerJSON.things[index]  = thingJSON;
+      } else {
+        this._trackerJSON.things.push(thingJSON);
+      }
+    } else {
+      this._trackerJSON.things.push(thingJSON);
+    }
+
     this.persist();
   },
 
@@ -82,17 +94,15 @@ var Tracker = module.exports = new Class({
       if (err){
         return callback(err);
       }
-      if (newThing.isNew){
-        that.addThingSummaryToTracker({
-          "id": newThing.id,
-          "title": newThing.title,
-          "refUrl": "/tracker/"+that.id+"/thing/"+newThing.id,
-          "latestVersion": newThing.version,
-          "versions": [newThing.version],
-          "thumbnailUrl": newThing.thumbnailUrls[0]||"",
-          "description": newThing.description
-          });
-      }
+      that.addThingSummaryToTracker({
+        "id": newThing.id,
+        "title": newThing.title,
+        "refUrl": "/tracker/"+that.id+"/thing/"+newThing.id,
+        "latestVersion": newThing.version,
+        "versions": [newThing.version],
+        "thumbnailUrl": newThing.thumbnailUrls[0]||"",
+        "description": newThing.description
+        });
       callback(null, newThing);
     });
 

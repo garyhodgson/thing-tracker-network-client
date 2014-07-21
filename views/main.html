@@ -6,7 +6,7 @@
     <ul>
       <li>
         <a ng-click="showLocalTrackers()" href="">
-          <p>{{ thisNodeId }}</p>
+          <p>{{ thisNodeDescription }}</p>
         </a>
         <hr>
       </li>
@@ -16,7 +16,7 @@
       <li ng-repeat="(id, remoteNode) in remoteNodes track by id">
         <a ng-click="showRemoteTrackers(remoteNode)" href="">
           <h4 ng-show="remoteNode.getJSON().description">{{ remoteNode.getJSON().description }}</h4>
-          <h4 ng-hide="remoteNode.getJSON().description">{{ remoteNode.getJSON().url }}</h4>
+          <h4 ng-hide="remoteNode.getJSON().description">{{ remoteNode.getJSON().nodeId }}</h4>
         </a>
         <h5>{{ id }}</h5>
           <p>Online: <span tri-state-indicator state="remoteNode.online"></span>
@@ -25,6 +25,8 @@
           Verified: <span tri-state-indicator state="remoteNode.verified"></span>
           </p>
           <input ng-disabled="!dhtOnline" ng-click="pingRemoteNode(remoteNode)" type="button" value="Ping" id="pingRemoteNodeBtn">
+
+          <input ng-click="refreshRemoteNode(remoteNode)" type="button" value="Check for updates" id="refreshRemoteNodeBtn">
         <hr>
       </li>
     </ul>

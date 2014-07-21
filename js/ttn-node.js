@@ -322,6 +322,10 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     return this.nodeId;
   },
 
+  getNodeDescription: function(){
+    return this.nodeConfig.description
+  },
+
   getNodeAddress: function(){
     return this.getExternalIPAddress() + ":" + this.config.dht.port;
   },
