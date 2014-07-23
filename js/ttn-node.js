@@ -31,9 +31,6 @@ var TTNNode = module.exports = new Class(EventEmitter, {
 
     var that = this;
 
-    log.debug("ttn-node config:");
-    log.debug(config);
-
     this.config = config;
     this.trackerNodeIndex = {};
     this.trackers = {};
@@ -45,7 +42,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
       log.warn("GLOBAL.skipCache = true")
     }
 
-    this.nodeKeys = new NodeKeys(config.dataPath);
+    this.nodeKeys = new NodeKeys(config.publicKey, config.privateKey, config.pemCertificate);
     this.nodeId = this.nodeKeys.getPublicKeyHash();
     this.ttnNodeInfo = {
       restProtocol : config.RESTServer.protocol||'http',
@@ -67,7 +64,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     this.initializeRemoteNodes();
     this.initializeRESTServer();
 
-    this.configureEventListeners(); // also joins network
+    this.configureEventListenersAndJoinNetwork();
 
     process.nextTick(function() { that.emit(that.events.initialized) });
   },
@@ -232,7 +229,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     });
   },
 
-  configureEventListeners: function(){
+  configureEventListenersAndJoinNetwork: function(){
     var that = this;
     var dhtNode = this.dhtNode;
 

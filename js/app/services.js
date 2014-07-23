@@ -2,8 +2,8 @@ var path = require('path'),
     fs = require('fs-extra'),
     gui = require('nw.gui'),
     TTNNode = require('./js/ttn-node'),
-    path = require('path')
-    nconf = require('nconf')
+    path = require('path'),
+    nconf = require('nconf'),
     optimist = require('optimist');
 
 angular.module('TTNClientApp.services', [])
@@ -21,6 +21,18 @@ angular.module('TTNClientApp.services', [])
   var homeDir = process.env.USERPROFILE || process.env.HOME || process.env.HOMEPATH;
   var ttnHomeDir = path.normalize(homeDir + "/.ttn");
 
+  nconf.defaults({
+    "dht": {  "bootstraps" : [argv.b||'127.0.0.1:3001'],
+              "port": parseInt(argv.port, 10) || 9880},
+    "RESTServer" : { "port": parseInt(argv.restPort, 10) || 9880 },
+    "startup" : { "joinDHT" : "true",
+                  "startRESTServer" : "true"},
+    "dataPath": path.normalize(argv.d || ttnHomeDir+'/data'),
+    "privateKey": path.normalize(ttnHomeDir+'/id_rsa'),
+    "publicKey": path.normalize(ttnHomeDir+'/id_rsa.pub'),
+    "pemCertificate": path.normalize(ttnHomeDir+'/id_rsa.pem')
+  });
+
   if (argv.c) {
     configLocation = argv.c
   } else {
@@ -36,11 +48,6 @@ angular.module('TTNClientApp.services', [])
     }
     var configLocation = path.normalize(ttnHomeDir + '/ttn-config.json');
 
-    if (!fs.existsSync(configLocation)){
-      fs.outputJsonSync(configLocation, {
-        "dataPath": ttnHomeDir + '/data'
-      });
-    }
   }
 
   if (argv.d){
@@ -48,8 +55,11 @@ angular.module('TTNClientApp.services', [])
     nconf.set("dataPath", argv.d)
   }
 
-  console.log("loading config from " + configLocation);
-  nconf.file({ file: configLocation });
+  if (!fs.existsSync(configLocation)){
+      fs.outputJsonSync(configLocation, nconf.load());
+  } else {
+    nconf.file({ file: configLocation });
+  }
 
   if (!argv.d){
     var dataDir = nconf.get("dataPath");
@@ -64,15 +74,6 @@ angular.module('TTNClientApp.services', [])
       }
     }
   }
-
-  nconf.defaults({
-    "dht": {  "bootstraps" : [argv.b||'127.0.0.1:3001'],
-              "port": parseInt(argv.port, 10) || 9880},
-    "RESTServer" : { "port": parseInt(argv.restPort, 10) || 9880 },
-    "startup" : { "joinDHT" : "true",
-                  "startRESTServer" : "true"},
-    "dataPath": path.normalize(argv.d || ttnHomeDir+'/data')
-  });
 
   return nconf.load();
 }])

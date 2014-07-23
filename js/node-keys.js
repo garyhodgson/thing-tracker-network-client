@@ -13,45 +13,60 @@ var NodeKeys = module.exports = new Class(EventEmitter, {
     initialized: "initialized"
   },
 
-  initialize: function(keysLocation, nodeId) {
-    if (keysLocation === undefined) throw Error("No keys location given");
-    if (!fs.existsSync(keysLocation)) throw new Error('Non-existant keys location: ' + keysLocation);
+  initialize: function(publicKeyFile, privateKeyFile, pemCertificateFile) {
+
+    if (fs.existsSync(publicKeyFile) && !fs.existsSync(privateKeyFile)) throw Error("publicKeyFile exists but privateKeyFile is missing: "+publicKeyFile + "," + privateKeyFile);
+    if (!fs.existsSync(publicKeyFile) && fs.existsSync(privateKeyFile)) throw Error("privateKeyFile exists but publicKeyFile is missing: "+privateKeyFile + "," + publicKeyFile);
+
     var that = this;
+    this.isPersistentKey = (publicKeyFile !== undefined && privateKeyFile !== undefined);
 
+    if (!this.isPersistentKey){
+      log.warn("No key files given, using random data to seed one-time hash.");
+      this._privateKey = Crypto.randomBytes(256);
+      this._publicKey = Crypto.randomBytes(256);
 
-    var pairFilename = keysLocation + "/keys.json"
-    var pair
-
-    if (!fs.existsSync(pairFilename)){
+    } else if (!fs.existsSync(publicKeyFile) && !fs.existsSync(privateKeyFile)){
 
       log.warn("Generating Keys");
       eventbus.emit(eventbus.generatingKeys);
 
-      pair = keypair();
+      var pair = keypair();
 
-      var shasum = Crypto.createHash('sha1');
-      shasum.update(pair.public);
-      pair.publicHash = shasum.digest('hex');
+      this._privateKey = pair.private;
+      this._publicKey = pair.public;
 
-      pem.createCertificate({serviceKey: pair.private}, function(err, result){
-        if (err) throw err;
-        pair.certificate = result.certificate;
-      });
+      if (pemCertificateFile && !fs.existsSync(pemCertificateFile)){
+        pem.createCertificate({serviceKey: this._privateKey}, function(err, result){
+          if (err) return log.error("Error creating PEM Certificate: " + err);
+          this._certificate = result.certificate;
+          fs.writeFileSync(pemCertificateFile, this._certificate);
+        });
+      }
 
-      fs.writeFileSync(pairFilename, JSON.stringify(pair, null, 4));
+      fs.writeFileSync(publicKeyFile, pair.public);
+      fs.writeFileSync(privateKeyFile, pair.private);
 
     } else {
-      pair = JSON.parse(fs.readFileSync(pairFilename))
+      this._publicKey = fs.readFileSync(publicKeyFile);
+      this._privateKey = fs.readFileSync(privateKeyFile);
+      if (pemCertificateFile && !fs.existsSync(pemCertificateFile)){
+        this._certificate = fs.readFileSync(pemCertificateFile);
+      }
     }
 
-    this._publicKey = pair.public;
-    this._privateKey = pair.private;
-    this._publicKeyHash = pair.publicHash;
-    this._certificate = pair.certificate;
-    this._signature = this.sign(JSON.stringify({
-      nodeId : this.getPublicKeyHash(),
-      publicKey : this.getPublicKey()
-    }));
+    var shasum = Crypto.createHash('sha1');
+    shasum.update(this._publicKey);
+    this._publicKeyHash = shasum.digest('hex');
+
+    if (this.isPersistentKey){
+      this._signature = this.sign(JSON.stringify({
+        nodeId : this.getPublicKeyHash(),
+        publicKey : this.getPublicKey()
+      }));
+    } else {
+      this._signature = "";
+    }
 
     process.nextTick(function() { that.emit(that.events.initialized) });
 

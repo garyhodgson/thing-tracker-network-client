@@ -1,8 +1,9 @@
-var fs = require("fs"),
+var fs = require("fs-extra"),
     _ = require("lodash"),
     nconf = require('nconf'),
     restify = require('restify'),
     TTNNode = require('./ttn-node'),
+    path = require('path'),
     UI = require('./ui/console-ui');
 
 
@@ -26,6 +27,8 @@ var argv  = require('optimist')
             .describe('d', 'path where data is stored.')
             .alias('i', 'interactive')
             .describe('i', 'start nodejs repl')
+            .alias('n', 'nokeys')
+            .describe('n', 'skip key generation')
             .argv;
 
 if (argv.h){
@@ -35,26 +38,87 @@ if (argv.h){
 
 var ui = new UI({level:argv.l || 'info'});
 
-if (argv.c){
-  nconf.file({ file: argv.c });
+var configLocation;
+var homeDir = process.env.USERPROFILE || process.env.HOME || process.env.HOMEPATH;
+var ttnHomeDir = path.normalize(homeDir + "/.ttn");
+
+console.log(ttnHomeDir);
+
+if (argv.c) {
+  configLocation = argv.c
+  nconf.file({ file: configLocation });
+} else {
+
+  if (!fs.existsSync(ttnHomeDir)){
+    console.log("No ttn home path given. Creating default in user home directory: " + ttnHomeDir);
+    fs.mkdirSync(ttnHomeDir);
+
+    if (!fs.existsSync(ttnHomeDir)){
+      console.error("Unable to create ttn home dir: " + ttnHomeDir);
+      process.exit(1);
+    }
+  }
+  var configLocation = path.normalize(ttnHomeDir + '/ttn-config.json');
+
 }
 
-nconf.defaults({
-        "dht": {
-          "bootstraps" : [argv.b||'127.0.0.1:3001'],
-          "port": parseInt(argv.port, 10) || 9880
-        },
-        "RESTServer" : {
-          "port": parseInt(argv.r, 10) || parseInt(argv.port, 10) || 9880
-        },
-        "startup" : {
-          "joinDHT" : "true",
-          "startRESTServer" : "true"
-        },
-        "dataPath": argv.d || './data'
-      });
+if (fs.existsSync(configLocation)){
+  nconf.file({ file: configLocation });
+}
 
-var ttnNode = module.exports = new TTNNode(nconf.load());
+var config = nconf.load();
+
+if (!fs.existsSync(configLocation)){
+  fs.outputJsonSync(configLocation, config);
+}
+
+
+var defaults = {
+  "dht": {
+    "bootstraps" : [argv.b||'127.0.0.1:3001'],
+    "port": parseInt(argv.port, 10) || 9880
+  },
+  "RESTServer" : {
+    "port": parseInt(argv.r, 10) || parseInt(argv.port, 10) || 9880
+  },
+  "startup" : {
+    "joinDHT" : "true",
+    "startRESTServer" : "true"
+  },
+  "dataPath": path.normalize(argv.d || ttnHomeDir+'/data')
+}
+
+if (!argv.n){
+  defaults.privateKey = path.normalize(ttnHomeDir+'/id_rsa');
+  defaults.publicKey = path.normalize(ttnHomeDir+'/id_rsa.pub');
+  defaults.pemCertificate = path.normalize(ttnHomeDir+'/id_rsa.pem');
+}
+
+nconf.defaults(defaults);
+
+
+
+console.log(config);
+
+
+
+if (!argv.d){
+  var dataDir = nconf.get("dataPath");
+
+  if (!fs.existsSync(dataDir)){
+    console.log("No data path given and none found in config so far, creating default in user home directory: " + dataDir);
+    fs.mkdirSync(dataDir);
+
+    if (!fs.existsSync(dataDir)){
+      console.error("Unable to create data dir: " + dataDir);
+      process.exit(1);
+    }
+  }
+}
+
+
+
+var ttnNode = module.exports = new TTNNode(config);
 
 ttnNode.on(ttnNode.events.displayStats, function(stats){
     log.info("Stats:\nDHT Connected: " + stats.dhtConnected
