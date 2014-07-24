@@ -1,7 +1,5 @@
 node_modules
-data/keys.json
-data/trackerStore.db
-data/NStorePersistentStorage.db
+data
 dist
 logs
-data2
+nohup.out
