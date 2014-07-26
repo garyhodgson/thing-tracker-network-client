@@ -4,31 +4,42 @@ var fs = require("fs-extra"),
     restify = require('restify'),
     TTNNode = require('./ttn-node'),
     path = require('path'),
-    UI = require('./ui/console-ui');
+    UI = require('./ui/console-ui'),
+    net = require("net"),
+    repl = require("repl");
 
 
 var log = require('kadoh/lib/logging').ns('CLI');
 
+var homeDir = process.env.USERPROFILE || process.env.HOME || process.env.HOMEPATH;
+var ttnHomeDir = path.normalize(homeDir + "/.ttn");
+var configLocation = path.normalize(ttnHomeDir + '/ttn-config.json');
+var defaultDataPath = path.normalize(ttnHomeDir+'/data')
+
 var argv  = require('optimist')
-            .usage('Usage: $0 -b 127.0.0.1:3001 -l debug -p 9880 -d ./data')
+            .usage('Usage: $0 <options>')
             .alias('b', 'bootstraps')
-            .describe('b', 'comma separated list of bootstraps')
+            .describe('b', 'comma separated list of bootstraps. Default: 127.0.0.1:3001')
             .alias('l', 'log')
-            .describe('l', 'log level (debug, info, warn, error, fatal)')
+            .describe('l', 'log level (debug, info, warn, error, fatal). Default: info')
             .alias('p', 'port')
-            .describe('p', 'port')
+            .describe('p', 'port. Default: 9880')
             .alias('r', 'restPort')
-            .describe('r', 'Port to run REST server (if different to one given with -p arg).')
+            .describe('r', 'Port to run REST server (if different to one given with -p arg). Default: 9880')
             .alias('h', 'help')
             .describe('h', 'help')
+            .alias('t', 'ttnroot')
+            .describe('t', 'Root TTN directory. Default: ' + ttnHomeDir)
             .alias('c', 'config')
-            .describe('c', 'config file.')
+            .describe('c', 'config file. Default: ' + configLocation)
             .alias('d', 'data')
-            .describe('d', 'path where data is stored.')
+            .describe('d', 'path where data is stored. Default: ' + defaultDataPath)
             .alias('i', 'interactive')
-            .describe('i', 'start nodejs repl')
+            .describe('i', 'start interactive nodejs repl.')
+            .alias('r', 'repl')
+            .describe('r', 'start background nodejs repl on a TCP Socket. Default: 50001')
             .alias('n', 'nokeys')
-            .describe('n', 'skip key generation')
+            .describe('n', 'skip key generation. Useful when running the first time to create the default config, and then modifying to use existing keys.')
             .argv;
 
 if (argv.h){
@@ -39,10 +50,6 @@ if (argv.h){
 var ui = new UI({level:argv.l || 'info'});
 
 var configLocation;
-var homeDir = process.env.USERPROFILE || process.env.HOME || process.env.HOMEPATH;
-var ttnHomeDir = path.normalize(homeDir + "/.ttn");
-
-console.log(ttnHomeDir);
 
 if (argv.c) {
   configLocation = argv.c
@@ -58,18 +65,10 @@ if (argv.c) {
       process.exit(1);
     }
   }
-  var configLocation = path.normalize(ttnHomeDir + '/ttn-config.json');
-
 }
 
 if (fs.existsSync(configLocation)){
   nconf.file({ file: configLocation });
-}
-
-var config = nconf.load();
-
-if (!fs.existsSync(configLocation)){
-  fs.outputJsonSync(configLocation, config);
 }
 
 
@@ -85,7 +84,7 @@ var defaults = {
     "joinDHT" : "true",
     "startRESTServer" : "true"
   },
-  "dataPath": path.normalize(argv.d || ttnHomeDir+'/data')
+  "dataPath": path.normalize(argv.d || defaultDataPath)
 }
 
 if (!argv.n){
@@ -96,10 +95,11 @@ if (!argv.n){
 
 nconf.defaults(defaults);
 
+var config = nconf.load();
 
-
-console.log(config);
-
+if (!fs.existsSync(configLocation)){
+  fs.outputJsonSync(configLocation, config);
+}
 
 
 if (!argv.d){
@@ -115,8 +115,6 @@ if (!argv.d){
     }
   }
 }
-
-
 
 var ttnNode = module.exports = new TTNNode(config);
 
@@ -139,13 +137,35 @@ ttnNode.on(ttnNode.events.foundNode, function(nodeId, node){
 });
 
 if (argv.i){
-  log.info("Starting REPL...")
+  log.info("Starting interactive REPL...")
 
-  var repl = require('repl').start('> ').on('exit', function () {
+  var interactiveRepl = repl.start('> ').on('exit', function () {
     ttnNode.shutdown(function(){
       process.exit();
     });
   });
 
-  repl.context.ttnNode = ttnNode;
+  interactiveRepl.context.ttnNode = ttnNode;
+}
+
+
+if (argv.r){
+
+  var tcpPort = argv.repl||50001
+  log.info("Starting TCP Socket REPL on port "+tcpPort+" ...");
+
+  net.createServer(function (socket) {
+
+    var tcpRepl = repl.start({
+      prompt: "ttn> ",
+      input: socket,
+      output: socket
+    }).on('exit', function() {
+      log.info("Closing TCP Socket REPL on port "+tcpPort);
+      socket.end();
+    });
+
+    tcpRepl.context.ttnNode = ttnNode;
+
+  }).listen(tcpPort);
 }

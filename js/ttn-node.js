@@ -89,6 +89,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     if (!fs.existsSync(nodeConfigPath)){
       fs.writeFileSync(nodeConfigPath, JSON.stringify({
         "nodeId": this.nodeId,
+        "description": "TTN Node",
         "trackers": []
       }));
     }
@@ -364,13 +365,13 @@ var TTNNode = module.exports = new Class(EventEmitter, {
 
     fs.outputJsonSync(newTrackerConfigPath, payload);
 
-    this.nodeConfig.trackers = this.nodeConfig.trackers || [];
+    this.nodeConfig.trackers = this.nodeConfig.trackers || {};
 
-    this.nodeConfig.trackers.push({
+    this.nodeConfig.trackers[newId] = {
         "id": newId,
         "title": newTrackerJSON.title,
         "description": newTrackerJSON.description
-      });
+      };
 
     this.persistNodeConfig();
 
@@ -435,17 +436,14 @@ var TTNNode = module.exports = new Class(EventEmitter, {
   },
 
   addTrackerToNodeConfig: function(nodeId, tracker){
-    var remoteTrackers = this.nodeConfig.remoteTrackers || [];
-    var remoteTracker = _.findWhere(remoteTrackers, {'id':tracker.id, 'ttnNodeId':nodeId});
-    if (remoteTracker === undefined){
-      remoteTrackers.push({
-        "id": tracker.id,
-        "ttnNodeId": nodeId,
-        "title": tracker._trackerJSON.title,
-        "description": tracker._trackerJSON.description
-      });
-      this.persist();
-    }
+    var remoteTrackers = this.nodeConfig.remoteTrackers || {};
+    remoteTrackers[tracker.id] = {
+      "id": tracker.id,
+      "ttnNodeId": nodeId,
+      "title": tracker._trackerJSON.title,
+      "description": tracker._trackerJSON.description
+    };
+    this.persist();
   },
 
   getRemoteTrackerAsync: function(nodeId, trackerId, callback){

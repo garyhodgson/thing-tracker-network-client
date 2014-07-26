@@ -86,6 +86,14 @@ var Tracker = module.exports = new Class({
     var thingZipUrl = thingAddress + "/" + newThing.id + "_" + newThing.version +".zip";
     var thingZipLocation = GLOBAL.dataPath + thingZipUrl;
 
+    if (_.isString(newThing.tags)){
+      newThing.tags = newThing.tags.split(",");
+    }
+
+    if (_.isString(newThing.licenses)){
+      newThing.licenses = newThing.licenses.split(",");
+    }
+
     newThing.downloadUrl = thingZipUrl;
     newThing.thumbnailUrls = _.map(thumbnailPaths, function(thumbnailPath){ return thingThumbnailUrl + path.basename(thumbnailPath); });
 

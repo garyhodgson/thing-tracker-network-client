@@ -14,36 +14,86 @@ Some background can be found in [this Google+ post](https://plus.google.com/u/0/
 
 ### Running
 
-#### Start a bot node
-* Run `./bin/ttnbot -b 127.0.0.1:3001 -l debug --cli`
-
-```
-Usage: ./bin/ttnbot -b 127.0.0.1:3001 -l debug --cli
-
-Options:
-  -b, --bootstraps  comma separated list of bootstraps
-  -l, --log         log level (debug, info, warn, error, fatal)
-  -c, --cli         start repl
-  -h, --help        help
-```
-(Note: press enter after startup if running with the `cli` option to bring focus to the repl console.)
+#### Start a bootstrap node
+* Run `node ./bin/ttn-bootstrap`
 
 #### Start the client
-* Configure the client to reference a bootstrap node (such as the bot above)
-* Assuming [node-webkit](https://github.com/rogerwang/node-webkit) is installed, run `./bin/start-client` (which is a shortcut to calling `nw .` in the project folder).
-
-#### Start a pool of bots
-* Run `./bin/dht udp.small`, where 'udp.small' is the name of a config file in `bin/config` (without the .json extension).
+* Configure the client to reference a bootstrap node
+* Assuming [node-webkit](https://github.com/rogerwang/node-webkit) is installed, run `nw --enable-logging .` in the project folder.
 
 #### Starting in command line mode
 * Run `node js/cli.js`
-(Note: this currently appears to hang the terminal after stopping)
+* Run `node js/cli.js -h for options`
+
+### Rapsberry Pi Notes
+
+#### Generating Keys
+
+The node keypair module is prohibitively slow in generating keys on Raspberry Pi.  Instead use ssh-keygen to first create private and public keys and reference these in the ttn config. Create the following config under ```/home/pi/.ttn/ttn-config.json```
+
+```
+{
+  "dht": {
+    "bootstraps": [
+      "127.0.0.1:3001"
+    ],
+    "port": 9880
+  },
+  "RESTServer": {
+    "port": 9880
+  },
+  "startup": {
+    "joinDHT": "true",
+    "startRESTServer": "true"
+  },
+  "dataPath": "/home/pi/.ttn/data",
+  "privateKey": "/home/pi/.ssh/id_rsa",
+  "publicKey": "/home/pi/.ssh/id_rsa.pub"
+}
+```
+
+
+To install a ttn-bootstrap or node as a service on a Raspberry Pi, and have it start at boot, I used initd-forever and forever:
+
+```
+sudo npm install -g forever
+sudo npm install initd-forever -g
+sudo initd-forever -a /opt/ttn-client/bin/ttn-bootstrap -n ttn-bootstrap -l /var/log/ttn-bootstrap.log
+sudo mv ttn-bootstrap /etc/init.d/
+sudo chmod 667 /etc/init.d/ttn-bootstrap
+sudo service ttn-bootstrap start
+sudo update-rc.d ttn-bootstrap defaults
+```
+
+### Connecting to a running cli instance
+
+The cli version of the client can start a REPL instance, either interactively (```node js/cli.js -i```) or in the background on a TCP port:
+
+```
+node js/cli.js -r 50001
+```
+
+Access to the live client can be achieved via telnet:
+
+```
+telnet localhost 50001
+```
+
+(using GNU rlwrap makes for a nicer experience, i.e. ```rlwrap telnet localhost 50001```)
+
+Exit the session using the REPL command: ```.exit```
+
+Commands can also be run via netcat, e.g.
+
+```
+echo "ttnNode.dhtNode.ttnKadohNode.announce(\"test message\")" | nc localhost 50001
+```
+
+
 
 ### Developing
 * Clone this project.
 * Run `npm install` to retrieve the relevant node modules.
-* Run `git submodule init` and `git submodule update` to pull in the custom version of KadOH.
-* Also run `npm install` under `node_modules/kadoh` to pull in their dependencies. (_NOTE: Not sure if this is the best way to go about distributing this_).
 
 #### Debugging
 It might be worth using the debug UI of the [KadOH](https://github.com/jinroh/kadoh) project to connect to the network. See instructions in that project.

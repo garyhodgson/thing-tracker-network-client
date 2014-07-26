@@ -13,5 +13,7 @@
     "joinNetwork" : "true",
     "joinDHT" : "true"
   },
-  "dataPath": "T:\\www\\ttn-client\\playground\\cli-client-data"
+  "dataPath": "T:\\www\\ttn-client\\playground\\cli-client-data",
+  "privateKey": "T:\\www\\ttn-client\\playground\\id_rsa",
+  "publicKey": "T:\\www\\ttn-client\\playground\\id_rsa.pub"
 }

@@ -47,15 +47,13 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
 
   function cleanThingJSON(localThing){
    _.each(localThing, function(v,k){
+    // remove empty arrays and objects
       if ((_.isArray(v) || _.isObject(v)) && _.isEmpty(v)) {
         delete localThing[k];
-      } else if (_.isString(v)){
-        if (_.isEmpty(v)){
-          delete localThing[k];
-          return;
-        }
-        // remove angular contamination
-        if (k.substr(0,2) == "$$"){
+      } else if (_.isString(k)){
+
+        // remove angular and client contamination
+        if ((k.substr(0,2) == "$$") ||(k == "isNew")){
           delete localThing[k];
           return;
         }

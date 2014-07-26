@@ -75,7 +75,9 @@ angular.module('TTNClientApp.services', [])
     }
   }
 
-  return nconf.load();
+  var config = nconf.load();
+  console.log("config:",config);
+  return config;
 }])
 
 .service('ttnNode', ['ttnConfig', TTNNode])

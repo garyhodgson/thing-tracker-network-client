@@ -26,7 +26,6 @@ angular.module('TTNClientApp.controllers').controller('NodeCtrl', ['$scope', '$t
   ttnNode.on(ttnNode.events.initialized, function(){
     console.log("ttnNode.events.initialized");
 
-
     $timeout(function(){
       $scope.trackers = ttnNode.trackers;
       $scope.remoteNodes = ttnNode.remoteNodes;
