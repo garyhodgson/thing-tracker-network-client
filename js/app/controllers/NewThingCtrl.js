@@ -83,7 +83,7 @@ angular.module('TTNClientApp.controllers').controller('NewThingCtrl', ['$scope',
   }
 
   $scope.thumbnailFilesChanged = function(files) {
-    this.thumbnailUrlsf  = files.split(";");
+    this.thumbnailUrls  = files.split(";");
     $scope.$apply();
   }
 

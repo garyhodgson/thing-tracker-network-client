@@ -127,7 +127,7 @@ var app = angular.module('TTNClientApp', [
 
     win.on('close', function() {
       var that = this;
-      console.log("close");
+      win.show();
 
       eventbus.emit(eventbus.events.app.closeRequest, function(){
         that.close(true);
@@ -136,9 +136,10 @@ var app = angular.module('TTNClientApp', [
 
     tray.menu = menu;
 
-    win.on('minimize', function() {
+    /* Uncomment the following to hide in tray on minimize */
+    /*win.on('minimize', function() {
       win.hide();
-    });
+    });*/
 
     tray.on('click', function() {
       win.show();

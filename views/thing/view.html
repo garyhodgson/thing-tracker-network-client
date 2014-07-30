@@ -115,11 +115,11 @@
                 </div>
                 <div class="col-md-3">
                   <span ng-show="item.url">
-                    <span ng-show="thing.isCachedLocally">
+                    <span ng-hide="thing.remote">
                       <a href="" ng-click="openBOMItem(item.url)">Open</a>,
                       <a href="" ng-click="showBOMItem(item.url)">Show</a>
                     </span>
-                    <a ng-hide="thing.isCachedLocally" href="" ng-click="navigateToURL(item.url)">Open</a>
+                    <a ng-show="thing.remote" href="" ng-click="navigateToURL(item.url)">Open</a>
                   </span>
                 </div>
               </div>

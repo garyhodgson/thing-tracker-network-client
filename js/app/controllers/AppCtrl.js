@@ -16,16 +16,15 @@ angular.module('TTNClientApp.controllers', []).controller('AppCtrl', ['$scope', 
     }
     if (console){
       console.log('UncaughtException', err.message, err);
-    //console.log('Shutting down TTN Node');
+      console.log('Shutting down TTN Node');
     }
-    // tmp turn off
-    /*if (ttnNode){
+    if (ttnNode){
       ttnNode.shutdown(function(){
         if (console){
           console.log('TTN Node shutdown.');
         }
       });
-    }*/
+    }
   });
 
   eventbus.on(eventbus.events.warning, function(message){
