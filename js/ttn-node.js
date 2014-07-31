@@ -168,7 +168,7 @@ var TTNNode = module.exports = new Class(EventEmitter, {
     this.restServer = (new RestServerFactory()).instance(this.nodeKeys, this.ttnNodeInfo.restProtocol);
 
     this.restServer.get('/', function(req,res,next){
-      var info = {
+      /*var info = {
         "nodeId": that.nodeId,
         "nodeAddress": that.getNodeAddress(),
         "trackers": that.nodeConfig.trackers||[]
@@ -177,6 +177,8 @@ var TTNNode = module.exports = new Class(EventEmitter, {
         info.publicKey =  that.dhtNode.nodeKeys.getPublicKey();
       }
       res.send(info);
+      */
+      res.send(that.nodeConfig);
       return next();
     });
 
@@ -194,6 +196,31 @@ var TTNNode = module.exports = new Class(EventEmitter, {
         res.send(404);
       } else {
         res.send(that.trackers[req.params.trackerId].getThingSync(req.params.id)||404);
+      }
+      return next();
+    });
+
+    this.restServer.get('/tracker/:trackerId/thing/:id/bom', function(req, res, next) {
+      if (that.trackers[req.params.trackerId] === undefined){
+        res.send(404);
+      } else {
+        var thing = that.trackers[req.params.trackerId].getThingSync(req.params.id);
+        res.send(thing.billOfMaterials||404);
+      }
+      return next();
+    });
+
+    this.restServer.get('/tracker/:trackerId/thing/:id/part/:partId', function(req, res, next) {
+      if (that.trackers[req.params.trackerId] === undefined){
+        res.send(404);
+      } else {
+        var thing = that.trackers[req.params.trackerId].getThingSync(req.params.id);
+        if (thing.billOfMaterials){
+          console.log("req.params.partId = ",req.params.partId);
+          res.send(_.find(thing.billOfMaterials, {'partNumber':Number(req.params.partId)})||404);
+        } else {
+          res.send(404);
+        }
       }
       return next();
     });
